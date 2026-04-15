@@ -11,6 +11,8 @@
 
 ---
 
+The best Multi-Agent Simulator $1 can buy: minimalist implementation of evolutionary biology and social dynamics with LLMs.
+
 nanolife is the smallest multi-agent LLM-based Artificial Life harness — a modular & paralel arhitecture with implementations of Darwinian selection, Maslow's hierarchy of needs, Malthusian economics, Lamarckian inheritance. ~350 lines of code in the main simulation engine `engine.py`. You can theoretically run this simulation ad infinitum. A simulation run costs from $0.1 (eg. gpt-oss-120b) to $5 (eg. Gemini-2.5-flash) and more (eg. Calude-Opus-4.6). The heartbeat is a configurable parameter (eg. '4h', 'day', etc) representing the time passage. No vector databases, no embeddings, just a minimalist implementation with 7 rules: scarcity, harshness, reputation, heredity, compression, local observation, event log.
 
 - **nanochat** by <a href="https://x.com/karpathy">karpathy</a> distilled language model training to its irreducible core.
