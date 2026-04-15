@@ -1,0 +1,39 @@
+{
+  "name": "colony",
+  "description": "20 agents founding a settlement in uncharted territory. Resources are scarce, cooperation is survival.",
+  "theme": "frontier survival",
+  "resource_name": "supplies",
+  "harshness": 0.5,
+  "initial_resources": 500,
+  "tick_unit": "4h",
+  "opening_events": [
+    "A group of settlers arrives at an uncharted territory. They have limited supplies and must build a new life together.",
+    "The land is fertile but dangerous. Wild animals roam the perimeter. Winter is coming."
+  ],
+  "agents": [
+    {"name": "Ada", "traits": {"strength": 0.7, "charisma": 0.5, "intelligence": 0.8}, "goal": "build a thriving settlement"},
+    {"name": "Bjorn", "traits": {"strength": 0.9, "charisma": 0.3, "intelligence": 0.4}, "goal": "protect the colony from threats"},
+    {"name": "Cora", "traits": {"strength": 0.4, "charisma": 0.8, "intelligence": 0.7}, "goal": "unite the settlers through diplomacy"},
+    {"name": "Dmitri", "traits": {"strength": 0.6, "charisma": 0.4, "intelligence": 0.9}, "goal": "discover and develop new technologies"},
+    {"name": "Elena", "traits": {"strength": 0.5, "charisma": 0.9, "intelligence": 0.5}, "goal": "become the leader this colony needs"},
+    {"name": "Farid", "traits": {"strength": 0.8, "charisma": 0.6, "intelligence": 0.3}, "goal": "gather enough resources to never go hungry"},
+    {"name": "Gaia", "traits": {"strength": 0.3, "charisma": 0.7, "intelligence": 0.8}, "goal": "heal the sick and keep everyone alive"},
+    {"name": "Hiro", "traits": {"strength": 0.6, "charisma": 0.5, "intelligence": 0.6}, "goal": "explore the unknown lands beyond the settlement"},
+    {"name": "Iris", "traits": {"strength": 0.5, "charisma": 0.6, "intelligence": 0.7}, "goal": "preserve knowledge and teach the young"},
+    {"name": "Jin", "traits": {"strength": 0.7, "charisma": 0.4, "intelligence": 0.5}, "goal": "build defenses that will last generations"},
+    {"name": "Kai", "traits": {"strength": 0.4, "charisma": 0.8, "intelligence": 0.6}, "goal": "mediate disputes and maintain peace"},
+    {"name": "Luna", "traits": {"strength": 0.5, "charisma": 0.7, "intelligence": 0.8}, "goal": "understand the natural world around us"},
+    {"name": "Milo", "traits": {"strength": 0.8, "charisma": 0.5, "intelligence": 0.4}, "goal": "prove my worth through hard work"},
+    {"name": "Nadia", "traits": {"strength": 0.6, "charisma": 0.6, "intelligence": 0.6}, "goal": "create a just system of laws"},
+    {"name": "Omar", "traits": {"strength": 0.7, "charisma": 0.3, "intelligence": 0.7}, "goal": "ensure fair distribution of resources"},
+    {"name": "Petra", "traits": {"strength": 0.5, "charisma": 0.5, "intelligence": 0.9}, "goal": "map the territory and find safe passages"},
+    {"name": "Quinn", "traits": {"strength": 0.6, "charisma": 0.7, "intelligence": 0.5}, "goal": "build trade relationships with any neighbors"},
+    {"name": "Ravi", "traits": {"strength": 0.9, "charisma": 0.4, "intelligence": 0.5}, "goal": "hunt and provide food for everyone"},
+    {"name": "Sable", "traits": {"strength": 0.4, "charisma": 0.9, "intelligence": 0.6}, "goal": "tell the stories that bind us together"},
+    {"name": "Tao", "traits": {"strength": 0.5, "charisma": 0.5, "intelligence": 0.7}, "goal": "find spiritual meaning in our new world"}
+  ],
+  "metadata": {
+    "color": "green",
+    "era": "frontier"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "nanorings",
+  "description": "The Ring has been found. A fellowship forms. Corruption spreads. Who can resist the call of power?",
+  "theme": "epic fantasy, corruption, fellowship, sacrifice, the burden of power",
+  "harshness": 0.6,
+  "tick_unit": "4h",
+  "locations": ["The Shire", "Rivendell", "Moria", "Rohan", "Gondor", "Mordor"],
+  "opening_events": [
+    "The One Ring has been found in a quiet corner of the world. Its whisper reaches every ear that listens.",
+    "A council forms at Rivendell. The free peoples must decide: who carries the Ring to its destruction?",
+    "Shadow gathers in the East. The Dark Lord's armies stir. Time runs short."
+  ],
+  "agents": [
+    { "name": "Frodo", "traits": { "strength": 0.3, "charisma": 0.5, "intelligence": 0.6 }, "goal": "carry the Ring to Mordor and destroy it, no matter the cost", "location": "The Shire" },
+    { "name": "Aragorn", "traits": { "strength": 0.9, "charisma": 0.8, "intelligence": 0.7 }, "goal": "reclaim my birthright and unite the kingdoms of men", "location": "Rivendell" },
+    { "name": "Gandalf", "traits": { "strength": 0.7, "charisma": 0.9, "intelligence": 0.95 }, "goal": "guide the fellowship and hold back the darkness", "location": "Rivendell" },
+    { "name": "Legolas", "traits": { "strength": 0.85, "charisma": 0.6, "intelligence": 0.6 }, "goal": "honor the alliance of elves and men against shadow", "location": "Rivendell" },
+    { "name": "Gimli", "traits": { "strength": 0.9, "charisma": 0.4, "intelligence": 0.4 }, "goal": "prove dwarven valor and stand with my companions", "location": "Rivendell" },
+    { "name": "Boromir", "traits": { "strength": 0.85, "charisma": 0.6, "intelligence": 0.5 }, "goal": "save Gondor by any means — even using the Ring", "location": "Gondor" },
+    { "name": "Sam", "traits": { "strength": 0.5, "charisma": 0.6, "intelligence": 0.4 }, "goal": "protect Frodo and bring him home safe", "location": "The Shire" },
+    { "name": "Gollum", "traits": { "strength": 0.4, "charisma": 0.2, "intelligence": 0.7 }, "goal": "reclaim my precious at any cost", "location": "Moria" },
+    { "name": "Saruman", "traits": { "strength": 0.6, "charisma": 0.7, "intelligence": 0.9 }, "goal": "seize the Ring and rule in place of the Dark Lord", "location": "Rohan" },
+    { "name": "Eowyn", "traits": { "strength": 0.7, "charisma": 0.6, "intelligence": 0.5 }, "goal": "fight for Rohan and prove a shieldmaiden's worth", "location": "Rohan" },
+    { "name": "Sauron", "traits": { "strength": 0.95, "charisma": 0.6, "intelligence": 0.9 }, "goal": "recover the Ring and dominate all living things", "location": "Mordor" },
+    { "name": "Faramir", "traits": { "strength": 0.7, "charisma": 0.6, "intelligence": 0.7 }, "goal": "prove my quality and protect Gondor without falling to temptation", "location": "Gondor" }
+  ],
+  "metadata": {
+    "color": "gold",
+    "era": "high fantasy",
+    "report_style": "ancient illuminated manuscript with ornate borders"
+  }
+}

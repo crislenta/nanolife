@@ -1,0 +1,20 @@
+{
+  "name": "custom",
+  "description": "A blank template for your own scenario. Fill in agents, resource, and world description.",
+  "theme": "your theme here",
+  "resource_name": "resources",
+  "harshness": 0.5,
+  "initial_resources": 500,
+  "tick_unit": "4h",
+  "opening_events": [
+    "Describe the opening state of your world here."
+  ],
+  "agents": [
+    {"name": "Agent1", "traits": {"strength": 0.5, "charisma": 0.5, "intelligence": 0.5}, "goal": "your goal here"},
+    {"name": "Agent2", "traits": {"strength": 0.5, "charisma": 0.5, "intelligence": 0.5}, "goal": "your goal here"}
+  ],
+  "metadata": {
+    "color": "white",
+    "era": "custom"
+  }
+}

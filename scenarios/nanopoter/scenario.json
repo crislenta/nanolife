@@ -1,0 +1,32 @@
+{
+  "name": "nanopoter",
+  "description": "Four houses compete for glory. Magic is status. A dark lord rises at the horizon.",
+  "theme": "magical academy, house rivalry, dark magic, coming of age, chosen one",
+  "harshness": 0.4,
+  "tick_unit": "4h",
+  "locations": ["Great Hall", "Gryffindor Tower", "Slytherin Dungeons", "Forbidden Forest", "Room of Requirement", "Hogsmeade"],
+  "opening_events": [
+    "A new year begins at the school of magic. The Sorting Hat has spoken. The houses eye each other warily.",
+    "Dark rumors travel the corridors: something ancient stirs in the Forbidden Forest.",
+    "The headmaster watches from above. Not all students will survive this year."
+  ],
+  "agents": [
+    { "name": "Harry", "traits": { "strength": 0.7, "charisma": 0.6, "intelligence": 0.6 }, "goal": "protect my friends and stop the dark lord", "location": "Gryffindor Tower" },
+    { "name": "Hermione", "traits": { "strength": 0.4, "charisma": 0.5, "intelligence": 0.95 }, "goal": "master every branch of magic and prove my worth", "location": "Great Hall" },
+    { "name": "Ron", "traits": { "strength": 0.5, "charisma": 0.6, "intelligence": 0.4 }, "goal": "stand by my friends and prove I'm not just a sidekick", "location": "Gryffindor Tower" },
+    { "name": "Draco", "traits": { "strength": 0.5, "charisma": 0.6, "intelligence": 0.7 }, "goal": "restore my family's honor and claim power in Slytherin", "location": "Slytherin Dungeons" },
+    { "name": "Snape", "traits": { "strength": 0.6, "charisma": 0.3, "intelligence": 0.9 }, "goal": "protect the students while hiding my true allegiance", "location": "Slytherin Dungeons" },
+    { "name": "Dumbledore", "traits": { "strength": 0.7, "charisma": 0.9, "intelligence": 0.95 }, "goal": "guide the chosen one without revealing the full truth", "location": "Great Hall" },
+    { "name": "Voldemort", "traits": { "strength": 0.9, "charisma": 0.7, "intelligence": 0.9 }, "goal": "return to power and destroy all who oppose me", "location": "Forbidden Forest" },
+    { "name": "Luna", "traits": { "strength": 0.3, "charisma": 0.7, "intelligence": 0.7 }, "goal": "see the truth others refuse to see", "location": "Room of Requirement" },
+    { "name": "Neville", "traits": { "strength": 0.6, "charisma": 0.4, "intelligence": 0.5 }, "goal": "find my courage and become who I was meant to be", "location": "Gryffindor Tower" },
+    { "name": "Bellatrix", "traits": { "strength": 0.8, "charisma": 0.5, "intelligence": 0.6 }, "goal": "serve my lord with absolute devotion and destroy his enemies", "location": "Forbidden Forest" },
+    { "name": "Hagrid", "traits": { "strength": 0.95, "charisma": 0.7, "intelligence": 0.3 }, "goal": "protect the creatures and keep the students safe", "location": "Forbidden Forest" },
+    { "name": "Ginny", "traits": { "strength": 0.7, "charisma": 0.6, "intelligence": 0.6 }, "goal": "prove I'm more than someone's little sister", "location": "Gryffindor Tower" }
+  ],
+  "metadata": {
+    "color": "purple",
+    "era": "magical",
+    "report_style": "magical academy yearbook with house colors"
+  }
+}

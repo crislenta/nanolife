@@ -1,0 +1,238 @@
+<!--
+  social_graph_viewer.html — Interactive social graph visualizer for nanolife.
+
+  Load a world.jsonl log file to see agents as nodes and friendships as edges,
+  colored by reputation. Uses a force-directed layout rendered on canvas.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nanolife · Social Graph</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Courier New', monospace; background: #0a0a1a; color: #eee; overflow: hidden; }
+  #controls { position: fixed; top: 10px; left: 10px; z-index: 10; background: rgba(10,10,26,0.9);
+              padding: 12px; border: 1px solid #333; border-radius: 6px; }
+  #controls input { background: #1a1a2e; color: #eee; border: 1px solid #444; padding: 6px 10px;
+                    border-radius: 4px; width: 300px; font-family: inherit; }
+  #controls button { background: #c9a84c; color: #000; border: none; padding: 6px 14px; border-radius: 4px;
+                     cursor: pointer; font-weight: bold; margin-left: 6px; }
+  #controls button:hover { background: #d4b65c; }
+  #info { position: fixed; bottom: 10px; left: 10px; z-index: 10; background: rgba(10,10,26,0.9);
+          padding: 10px; border: 1px solid #333; border-radius: 6px; font-size: 0.85rem; max-width: 350px; }
+  #info .label { color: #c9a84c; }
+  canvas { display: block; }
+  .instructions { position: fixed; top: 10px; right: 10px; background: rgba(10,10,26,0.9);
+                  padding: 10px; border: 1px solid #333; border-radius: 6px; font-size: 0.8rem; color: #888; }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <input type="file" id="fileInput" accept=".jsonl">
+  <button onclick="loadFromFile()">Load world.jsonl</button>
+</div>
+
+<div class="instructions">
+  Load a world.jsonl file to visualize the social graph.<br>
+  Nodes = agents. Edges = friendships. Color = reputation.
+</div>
+
+<div id="info">
+  <span class="label">Agents:</span> <span id="agentCount">0</span> |
+  <span class="label">Friendships:</span> <span id="friendCount">0</span><br>
+  <span id="selectedInfo"></span>
+</div>
+
+<canvas id="graph"></canvas>
+
+<script>
+const canvas = document.getElementById('graph');
+const ctx = canvas.getContext('2d');
+let nodes = [];
+let edges = [];
+let selectedNode = null;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function loadFromFile() {
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    const events = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+    buildGraph(events);
+  };
+  reader.readAsText(file);
+}
+
+function buildGraph(events) {
+  const agentMap = {};
+  const friendSet = new Set();
+
+  for (const e of events) {
+    if (e.type === 'birth' && e.agent) {
+      agentMap[e.agent] = {
+        id: e.agent,
+        name: e.content ? e.content.split(' ')[0] : e.agent.slice(0, 8),
+        alive: true,
+        rep: 0.5,
+        x: Math.random() * canvas.width * 0.6 + canvas.width * 0.2,
+        y: Math.random() * canvas.height * 0.6 + canvas.height * 0.2,
+        vx: 0, vy: 0,
+      };
+    }
+    if (e.type === 'death' && e.agent && agentMap[e.agent]) {
+      agentMap[e.agent].alive = false;
+    }
+    if (e.type === 'reputation' && e.agent && agentMap[e.agent]) {
+      agentMap[e.agent].rep = Math.max(-1, Math.min(1, agentMap[e.agent].rep + (e.delta || 0)));
+    }
+    if (e.type === 'friendship' && e.agent) {
+      const content = e.content || '';
+      for (const id of Object.keys(agentMap)) {
+        if (id !== e.agent && content.includes(agentMap[id].name)) {
+          const key = [e.agent, id].sort().join('-');
+          friendSet.add(key);
+        }
+      }
+    }
+  }
+
+  nodes = Object.values(agentMap);
+  edges = [...friendSet].map(k => {
+    const [a, b] = k.split('-');
+    return { source: a, target: b };
+  });
+
+  document.getElementById('agentCount').textContent = nodes.length;
+  document.getElementById('friendCount').textContent = edges.length;
+
+  simulate();
+}
+
+function simulate() {
+  const iterations = 200;
+  for (let i = 0; i < iterations; i++) {
+    // Repulsion
+    for (let a = 0; a < nodes.length; a++) {
+      for (let b = a + 1; b < nodes.length; b++) {
+        let dx = nodes[b].x - nodes[a].x;
+        let dy = nodes[b].y - nodes[a].y;
+        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        let force = 5000 / (dist * dist);
+        nodes[a].vx -= (dx / dist) * force;
+        nodes[a].vy -= (dy / dist) * force;
+        nodes[b].vx += (dx / dist) * force;
+        nodes[b].vy += (dy / dist) * force;
+      }
+    }
+    // Attraction (edges)
+    const nodeMap = {};
+    nodes.forEach(n => nodeMap[n.id] = n);
+    for (const e of edges) {
+      const a = nodeMap[e.source];
+      const b = nodeMap[e.target];
+      if (!a || !b) continue;
+      let dx = b.x - a.x;
+      let dy = b.y - a.y;
+      let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      let force = (dist - 100) * 0.01;
+      a.vx += (dx / dist) * force;
+      a.vy += (dy / dist) * force;
+      b.vx -= (dx / dist) * force;
+      b.vy -= (dy / dist) * force;
+    }
+    // Center gravity
+    const cx = canvas.width / 2, cy = canvas.height / 2;
+    for (const n of nodes) {
+      n.vx += (cx - n.x) * 0.001;
+      n.vy += (cy - n.y) * 0.001;
+      n.vx *= 0.9;
+      n.vy *= 0.9;
+      n.x += n.vx;
+      n.y += n.vy;
+    }
+  }
+  draw();
+}
+
+function repColor(rep) {
+  if (rep > 0.3) return `rgb(${Math.floor(80 + 175 * (1-rep))}, ${Math.floor(180 + 75 * rep)}, 100)`;
+  if (rep < -0.3) return `rgb(${Math.floor(200 + 55 * Math.abs(rep))}, ${Math.floor(80 * (1+rep))}, 80)`;
+  return '#c9a84c';
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const nodeMap = {};
+  nodes.forEach(n => nodeMap[n.id] = n);
+
+  // Edges
+  ctx.strokeStyle = 'rgba(100, 100, 150, 0.3)';
+  ctx.lineWidth = 1;
+  for (const e of edges) {
+    const a = nodeMap[e.source];
+    const b = nodeMap[e.target];
+    if (!a || !b) continue;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+
+  // Nodes
+  for (const n of nodes) {
+    const r = n === selectedNode ? 12 : 8;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = n.alive ? repColor(n.rep) : '#555';
+    ctx.fill();
+    if (n === selectedNode) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = n.alive ? '#eee' : '#888';
+    ctx.font = '11px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText(n.name, n.x, n.y - 14);
+  }
+}
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  selectedNode = null;
+  for (const n of nodes) {
+    const dx = n.x - mx, dy = n.y - my;
+    if (Math.sqrt(dx*dx + dy*dy) < 15) {
+      selectedNode = n;
+      break;
+    }
+  }
+
+  if (selectedNode) {
+    const friends = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).length;
+    document.getElementById('selectedInfo').innerHTML =
+      `<span class="label">${selectedNode.name}</span> rep: ${selectedNode.rep.toFixed(2)} | ` +
+      `friends: ${friends} | ${selectedNode.alive ? '✓ alive' : '☠ dead'}`;
+  } else {
+    document.getElementById('selectedInfo').textContent = '';
+  }
+  draw();
+});
+</script>
+</body>
+</html>

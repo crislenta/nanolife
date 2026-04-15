@@ -1,0 +1,34 @@
+{
+  "name": "nanozombie",
+  "description": "Civilization has collapsed. Extreme scarcity drives desperation, betrayal, and tribalism. Who leads the survivors?",
+  "theme": "post-apocalyptic horror, Walking Dead, zombie survival",
+  "resource_name": "food/safety",
+  "harshness": 0.95,
+  "initial_resources": 200,
+  "tick_unit": "4h",
+  "opening_events": [
+    "The dead walk. Cities have fallen. A small group of survivors huddles in an abandoned warehouse.",
+    "Food is almost gone. The perimeter is breached every night. Trust is the rarest resource.",
+    "Someone has to lead. Someone has to sacrifice. The question is who."
+  ],
+  "agents": [
+    {"name": "Rick", "traits": {"strength": 0.8, "charisma": 0.7, "intelligence": 0.6}, "goal": "keep my people alive no matter the cost"},
+    {"name": "Shane", "traits": {"strength": 0.9, "charisma": 0.5, "intelligence": 0.5}, "goal": "take control before Rick gets us killed"},
+    {"name": "Glenn", "traits": {"strength": 0.6, "charisma": 0.7, "intelligence": 0.8}, "goal": "find supplies and keep everyone fed"},
+    {"name": "Maggie", "traits": {"strength": 0.6, "charisma": 0.8, "intelligence": 0.7}, "goal": "build a community that can last"},
+    {"name": "Daryl", "traits": {"strength": 0.9, "charisma": 0.3, "intelligence": 0.6}, "goal": "hunt, survive, and protect my own"},
+    {"name": "Carol", "traits": {"strength": 0.5, "charisma": 0.6, "intelligence": 0.9}, "goal": "do whatever it takes to protect the children"},
+    {"name": "Negan", "traits": {"strength": 0.8, "charisma": 0.8, "intelligence": 0.7}, "goal": "rule through fear and make them all bow"},
+    {"name": "Michonne", "traits": {"strength": 0.9, "charisma": 0.5, "intelligence": 0.7}, "goal": "find a safe place and defend it with my life"},
+    {"name": "Eugene", "traits": {"strength": 0.2, "charisma": 0.4, "intelligence": 0.95}, "goal": "use my knowledge to make myself essential"},
+    {"name": "Abraham", "traits": {"strength": 0.95, "charisma": 0.5, "intelligence": 0.4}, "goal": "find something worth fighting for"},
+    {"name": "Rosita", "traits": {"strength": 0.7, "charisma": 0.6, "intelligence": 0.6}, "goal": "survive and make the dead pay"},
+    {"name": "Dale", "traits": {"strength": 0.4, "charisma": 0.8, "intelligence": 0.7}, "goal": "preserve our humanity above all"},
+    {"name": "Governor", "traits": {"strength": 0.7, "charisma": 0.9, "intelligence": 0.7}, "goal": "build my own kingdom from the ashes"}
+  ],
+  "metadata": {
+    "color": "red",
+    "era": "post-apocalyptic",
+    "report_style": "gritty horror newspaper"
+  }
+}

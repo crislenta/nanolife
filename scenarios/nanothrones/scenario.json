@@ -1,0 +1,116 @@
+{
+  "name": "nanothrones",
+  "description": "Great Houses vie for the Iron Throne. Betrayal, marriage, assassination. Who sits the throne at year 100?",
+  "theme": "medieval political intrigue, dark fantasy, Game of Thrones",
+  "harshness": 0.4,
+  "base_drain": 1.0,
+  "base_gain": 4.0,
+  "reputation_decay": 0.03,
+  "starting_resources": 15.0,
+  "tick_unit": "day",
+  "locations": ["King's Landing", "Winterfell", "Dragonstone", "The Wall", "Riverrun", "The Eyrie"],
+  "location_coords": {
+    "The Wall": { "x": 0.45, "y": 0.05, "biome": "ice" },
+    "Winterfell": { "x": 0.4, "y": 0.25, "biome": "forest" },
+    "The Eyrie": { "x": 0.65, "y": 0.45, "biome": "mountain" },
+    "Riverrun": { "x": 0.35, "y": 0.5, "biome": "plains" },
+    "King's Landing": { "x": 0.5, "y": 0.72, "biome": "urban" },
+    "Dragonstone": { "x": 0.8, "y": 0.8, "biome": "coastal" }
+  },
+  "opening_events": [
+    "The old king is dead. The Iron Throne sits empty. The Great Houses gather their forces.",
+    "Ravens carry word across the realm: a new age of blood and ambition has begun.",
+    "Winter whispers from the North. The realm is fractured. Alliances shift like sand."
+  ],
+  "agents": [
+    {
+      "name": "Cersei",
+      "traits": { "strength": 0.4, "charisma": 0.7, "intelligence": 0.9 },
+      "goal": "seize the Iron Throne and destroy all rivals",
+      "location": "King's Landing"
+    },
+    {
+      "name": "Tyrion",
+      "traits": { "strength": 0.2, "charisma": 0.9, "intelligence": 0.95 },
+      "goal": "survive through wit and become indispensable",
+      "location": "King's Landing"
+    },
+    {
+      "name": "Daenerys",
+      "traits": { "strength": 0.6, "charisma": 0.9, "intelligence": 0.7 },
+      "goal": "reclaim what is rightfully mine and rule justly",
+      "location": "Dragonstone"
+    },
+    {
+      "name": "Jon",
+      "traits": { "strength": 0.8, "charisma": 0.6, "intelligence": 0.5 },
+      "goal": "protect the realm from the true threat",
+      "location": "The Wall"
+    },
+    {
+      "name": "Varys",
+      "traits": { "strength": 0.1, "charisma": 0.8, "intelligence": 0.9 },
+      "goal": "serve the realm by controlling information",
+      "location": "King's Landing"
+    },
+    {
+      "name": "Littlefinger",
+      "traits": { "strength": 0.2, "charisma": 0.85, "intelligence": 0.95 },
+      "goal": "climb the ladder of chaos to ultimate power",
+      "location": "The Eyrie"
+    },
+    {
+      "name": "Jaime",
+      "traits": { "strength": 0.95, "charisma": 0.6, "intelligence": 0.5 },
+      "goal": "redeem my honor and protect those I love",
+      "location": "King's Landing"
+    },
+    {
+      "name": "Arya",
+      "traits": { "strength": 0.7, "charisma": 0.4, "intelligence": 0.7 },
+      "goal": "avenge my family and become no one",
+      "location": "Riverrun"
+    },
+    {
+      "name": "Sansa",
+      "traits": { "strength": 0.3, "charisma": 0.7, "intelligence": 0.8 },
+      "goal": "survive, learn, and rule the North",
+      "location": "Winterfell"
+    },
+    {
+      "name": "Margaery",
+      "traits": { "strength": 0.3, "charisma": 0.95, "intelligence": 0.8 },
+      "goal": "become queen through charm and alliance",
+      "location": "King's Landing"
+    },
+    {
+      "name": "Stannis",
+      "traits": { "strength": 0.8, "charisma": 0.2, "intelligence": 0.7 },
+      "goal": "claim the throne by right of law",
+      "location": "Dragonstone"
+    },
+    {
+      "name": "Melisandre",
+      "traits": { "strength": 0.5, "charisma": 0.8, "intelligence": 0.6 },
+      "goal": "guide the chosen one to victory through faith",
+      "location": "Dragonstone"
+    },
+    {
+      "name": "Brienne",
+      "traits": { "strength": 0.95, "charisma": 0.3, "intelligence": 0.5 },
+      "goal": "fulfill my oath and protect the innocent",
+      "location": "Riverrun"
+    },
+    {
+      "name": "Ramsay",
+      "traits": { "strength": 0.7, "charisma": 0.3, "intelligence": 0.6 },
+      "goal": "dominate through fear and cruelty",
+      "location": "Winterfell"
+    }
+  ],
+  "metadata": {
+    "color": "gold",
+    "era": "medieval",
+    "report_style": "dark gold medieval chronicle"
+  }
+}

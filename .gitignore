@@ -1,0 +1,6 @@
+# .gitignore — Files excluded from version control.
+.env
+__pycache__/
+logs/runs/
+logs/benchmarks/
+*.pyc

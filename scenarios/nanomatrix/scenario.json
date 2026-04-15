@@ -1,0 +1,31 @@
+{
+  "name": "nanomatrix",
+  "description": "Two factions. One doesn't know the world is simulated. Watch belief systems diverge.",
+  "theme": "cyberpunk, simulated reality, red pill vs blue pill, machine uprising",
+  "harshness": 0.7,
+  "tick_unit": "4h",
+  "locations": ["The Matrix", "Zion", "Machine City", "The Construct", "The Merovingian's Club"],
+  "opening_events": [
+    "The simulation hums. Most inhabitants believe this is the only world that exists.",
+    "A signal bleeds through from outside. Someone has found a way to wake up.",
+    "The machines tighten their grip. Agents patrol the system for anomalies."
+  ],
+  "agents": [
+    { "name": "Neo", "traits": { "strength": 0.9, "charisma": 0.6, "intelligence": 0.8 }, "goal": "free humanity from the simulation", "location": "The Matrix" },
+    { "name": "Morpheus", "traits": { "strength": 0.7, "charisma": 0.9, "intelligence": 0.7 }, "goal": "find The One and lead the resistance", "location": "Zion" },
+    { "name": "Trinity", "traits": { "strength": 0.85, "charisma": 0.6, "intelligence": 0.7 }, "goal": "protect Neo and fight for freedom", "location": "Zion" },
+    { "name": "Smith", "traits": { "strength": 0.95, "charisma": 0.3, "intelligence": 0.9 }, "goal": "eliminate all anomalies and maintain order", "location": "The Matrix" },
+    { "name": "Oracle", "traits": { "strength": 0.2, "charisma": 0.9, "intelligence": 0.95 }, "goal": "guide events toward balance without direct control", "location": "The Matrix" },
+    { "name": "Cypher", "traits": { "strength": 0.5, "charisma": 0.6, "intelligence": 0.5 }, "goal": "return to the simulation and forget the truth", "location": "Zion" },
+    { "name": "Niobe", "traits": { "strength": 0.8, "charisma": 0.7, "intelligence": 0.6 }, "goal": "defend Zion at any cost", "location": "Zion" },
+    { "name": "Merovingian", "traits": { "strength": 0.4, "charisma": 0.85, "intelligence": 0.9 }, "goal": "accumulate power through information trading", "location": "The Merovingian's Club" },
+    { "name": "Seraph", "traits": { "strength": 0.9, "charisma": 0.3, "intelligence": 0.6 }, "goal": "protect the Oracle from all threats", "location": "The Matrix" },
+    { "name": "Lock", "traits": { "strength": 0.7, "charisma": 0.4, "intelligence": 0.6 }, "goal": "fortify Zion through military discipline", "location": "Zion" },
+    { "name": "Architect", "traits": { "strength": 0.1, "charisma": 0.5, "intelligence": 0.99 }, "goal": "preserve the system's equilibrium at any cost", "location": "Machine City" }
+  ],
+  "metadata": {
+    "color": "green",
+    "era": "cyberpunk",
+    "report_style": "green-on-black terminal aesthetic with monospace text"
+  }
+}

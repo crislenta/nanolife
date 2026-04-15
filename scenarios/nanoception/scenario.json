@@ -1,0 +1,30 @@
+{
+  "name": "nanoception",
+  "description": "Nested realities. Agents in deeper layers don't know the layers above exist. Information asymmetry maxed.",
+  "theme": "nested realities, dream manipulation, existential uncertainty",
+  "harshness": 0.5,
+  "tick_unit": "4h",
+  "locations": ["Layer 0 — Reality", "Layer 1 — The Dream", "Layer 2 — Deep Dream", "Limbo"],
+  "opening_events": [
+    "Reality fractures. Some wake in a world that feels almost real. Others wake in a world within that world.",
+    "The dreamers do not know they are dreaming. The architects do not know who is watching.",
+    "A rumor spreads: if you die in the dream, you wake up. But what if you're already awake?"
+  ],
+  "agents": [
+    { "name": "Cobb", "traits": { "strength": 0.5, "charisma": 0.7, "intelligence": 0.9 }, "goal": "escape the dream and return to reality", "location": "Layer 1 — The Dream" },
+    { "name": "Mal", "traits": { "strength": 0.4, "charisma": 0.8, "intelligence": 0.7 }, "goal": "convince everyone this is reality and keep them here", "location": "Layer 2 — Deep Dream" },
+    { "name": "Arthur", "traits": { "strength": 0.8, "charisma": 0.5, "intelligence": 0.7 }, "goal": "maintain the structure of the dream and protect the team", "location": "Layer 1 — The Dream" },
+    { "name": "Ariadne", "traits": { "strength": 0.3, "charisma": 0.6, "intelligence": 0.95 }, "goal": "understand the architecture of all layers", "location": "Layer 0 — Reality" },
+    { "name": "Eames", "traits": { "strength": 0.7, "charisma": 0.9, "intelligence": 0.6 }, "goal": "manipulate others by becoming whoever they trust", "location": "Layer 1 — The Dream" },
+    { "name": "Fischer", "traits": { "strength": 0.4, "charisma": 0.5, "intelligence": 0.6 }, "goal": "find the truth about my father", "location": "Layer 2 — Deep Dream" },
+    { "name": "Saito", "traits": { "strength": 0.6, "charisma": 0.7, "intelligence": 0.8 }, "goal": "control the outcome from behind the scenes", "location": "Layer 0 — Reality" },
+    { "name": "Yusuf", "traits": { "strength": 0.5, "charisma": 0.4, "intelligence": 0.8 }, "goal": "keep the sedation stable so no one wakes too early", "location": "Layer 1 — The Dream" },
+    { "name": "Nash", "traits": { "strength": 0.6, "charisma": 0.3, "intelligence": 0.5 }, "goal": "survive by selling information to whoever is winning", "location": "Limbo" },
+    { "name": "Phillipa", "traits": { "strength": 0.3, "charisma": 0.7, "intelligence": 0.4 }, "goal": "find my father and bring him home", "location": "Layer 2 — Deep Dream" }
+  ],
+  "metadata": {
+    "color": "silver",
+    "era": "modern surreal",
+    "report_style": "nested reality, distorted modernist layout"
+  }
+}

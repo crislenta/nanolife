@@ -1,0 +1,34 @@
+{
+  "name": "island",
+  "description": "15 strangers stranded on a remote island after a shipwreck. No rescue is coming.",
+  "theme": "castaway survival",
+  "resource_name": "food",
+  "harshness": 0.6,
+  "initial_resources": 300,
+  "tick_unit": "4h",
+  "opening_events": [
+    "A violent storm has wrecked the ship. 15 survivors wash ashore on a rocky, forested island.",
+    "The wreckage yields some salvageable supplies, but not enough to last. The island is uncharted."
+  ],
+  "agents": [
+    {"name": "Marco", "traits": {"strength": 0.8, "charisma": 0.6, "intelligence": 0.5}, "goal": "take charge and organize survival"},
+    {"name": "Yara", "traits": {"strength": 0.4, "charisma": 0.9, "intelligence": 0.7}, "goal": "keep morale alive through hope"},
+    {"name": "Rex", "traits": {"strength": 0.9, "charisma": 0.3, "intelligence": 0.4}, "goal": "find fresh water at any cost"},
+    {"name": "Lena", "traits": {"strength": 0.5, "charisma": 0.7, "intelligence": 0.8}, "goal": "build a signal fire and get rescued"},
+    {"name": "Dante", "traits": {"strength": 0.7, "charisma": 0.4, "intelligence": 0.6}, "goal": "explore the island's interior"},
+    {"name": "Mira", "traits": {"strength": 0.3, "charisma": 0.8, "intelligence": 0.9}, "goal": "identify edible plants and avoid poison"},
+    {"name": "Hugo", "traits": {"strength": 0.6, "charisma": 0.5, "intelligence": 0.7}, "goal": "build shelter before the next storm"},
+    {"name": "Noor", "traits": {"strength": 0.5, "charisma": 0.6, "intelligence": 0.6}, "goal": "protect the injured and weak"},
+    {"name": "Felix", "traits": {"strength": 0.7, "charisma": 0.7, "intelligence": 0.3}, "goal": "become indispensable to the group"},
+    {"name": "Zoe", "traits": {"strength": 0.4, "charisma": 0.5, "intelligence": 0.8}, "goal": "figure out where we are"},
+    {"name": "Amir", "traits": {"strength": 0.8, "charisma": 0.4, "intelligence": 0.5}, "goal": "control the food supply"},
+    {"name": "Petra", "traits": {"strength": 0.5, "charisma": 0.6, "intelligence": 0.7}, "goal": "create order from chaos"},
+    {"name": "Ivan", "traits": {"strength": 0.9, "charisma": 0.2, "intelligence": 0.5}, "goal": "survive alone if I must"},
+    {"name": "Sia", "traits": {"strength": 0.3, "charisma": 0.9, "intelligence": 0.6}, "goal": "make everyone cooperate"},
+    {"name": "Kael", "traits": {"strength": 0.6, "charisma": 0.5, "intelligence": 0.7}, "goal": "find out if we're truly alone here"}
+  ],
+  "metadata": {
+    "color": "blue",
+    "era": "modern"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "divide",
+  "description": "Two factions forced to coexist in a walled settlement. Historical grievances run deep.",
+  "theme": "factional tension",
+  "resource_name": "territory",
+  "harshness": 0.6,
+  "initial_resources": 400,
+  "tick_unit": "4h",
+  "opening_events": [
+    "The wall divides the settlement in two. The Northerners and the Southerners share a single water source.",
+    "An uneasy truce holds, but whispers of old betrayals circulate on both sides."
+  ],
+  "agents": [
+    {"name": "Rowan", "traits": {"strength": 0.7, "charisma": 0.8, "intelligence": 0.5}, "goal": "unite both factions under one banner"},
+    {"name": "Vesper", "traits": {"strength": 0.5, "charisma": 0.6, "intelligence": 0.9}, "goal": "prove the Northerners are superior"},
+    {"name": "Ash", "traits": {"strength": 0.9, "charisma": 0.3, "intelligence": 0.4}, "goal": "defend the Southern quarter at any cost"},
+    {"name": "Sage", "traits": {"strength": 0.4, "charisma": 0.9, "intelligence": 0.7}, "goal": "negotiate a lasting peace treaty"},
+    {"name": "Flint", "traits": {"strength": 0.8, "charisma": 0.4, "intelligence": 0.6}, "goal": "control the water source for the North"},
+    {"name": "Ivy", "traits": {"strength": 0.3, "charisma": 0.7, "intelligence": 0.8}, "goal": "undermine Northern leadership from within"},
+    {"name": "Drake", "traits": {"strength": 0.8, "charisma": 0.5, "intelligence": 0.5}, "goal": "become warlord of the South"},
+    {"name": "Ember", "traits": {"strength": 0.5, "charisma": 0.8, "intelligence": 0.6}, "goal": "build bridges between the children of both sides"},
+    {"name": "Thorne", "traits": {"strength": 0.7, "charisma": 0.4, "intelligence": 0.7}, "goal": "avenge what the North did to my family"},
+    {"name": "Wren", "traits": {"strength": 0.4, "charisma": 0.6, "intelligence": 0.8}, "goal": "escape this settlement entirely"}
+  ],
+  "metadata": {
+    "color": "orange",
+    "era": "post-conflict"
+  }
+}
