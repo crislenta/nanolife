@@ -94,6 +94,10 @@ class Engine:
             f"Locations: {', '.join(self.world.locations)}"
         )
 
+        # Clear inboxes at start of tick so prompts only show fresh messages.
+        for agent in alive:
+            agent.inbox = []
+
         # --- All agents observe and act in PARALLEL ---
         agent_contexts = []
         for agent in alive:
@@ -105,6 +109,13 @@ class Engine:
             self.cognitive.decide(agent, recent, world_ctx, alive)
             for agent, recent in agent_contexts
         ))
+
+        # Collect pact offers first so we can seal mutual ones below.
+        pact_offers: dict[str, str] = {}
+        for (agent, _), decision in zip(agent_contexts, decisions):
+            pw = decision.get("pact_with")
+            if pw and pw != agent.id:
+                pact_offers[agent.id] = pw
 
         for (agent, _), decision in zip(agent_contexts, decisions):
             # Restrict witnesses to agents in the same location
@@ -122,7 +133,7 @@ class Engine:
                     }
                     self.world.event_log.append(disc_event)
                     result.events.append(disc_event)
-                    
+
                 move_event: Event = {
                     "tick": tick_num,
                     "type": "move",
@@ -134,6 +145,8 @@ class Engine:
                 self.world.event_log.append(move_event)
                 result.events.append(move_event)
                 agent.memory.append(move_event)
+                # Recompute witnesses after moving.
+                local_witnesses = [a.id for a in alive if a.location == agent.location]
 
             thought_event: Event = {
                 "tick": tick_num,
@@ -150,6 +163,7 @@ class Engine:
                 "agent": agent.id,
                 "content": decision["action"],
                 "mode": mode,
+                "working": mode == "productive",
                 "witnesses": local_witnesses,
             }
 
@@ -170,7 +184,7 @@ class Engine:
                     rep_event: Event = {
                         "tick": tick_num,
                         "type": "reputation",
-                        "agent": agent.id,
+                        "agent": target.id,
                         "content": f"{agent.name} {'praised' if delta > 0 else 'criticized'} {target.name}",
                         "delta": delta,
                         "source": agent.id,
@@ -194,6 +208,160 @@ class Engine:
                 }
                 self.world.event_log.append(friendship_event)
                 result.events.append(friendship_event)
+
+            # --- Gifts: positive-amount resource transfers ---
+            for target_id, amount in decision.get("gifts", {}).items():
+                target = next((a for a in alive if a.id == target_id), None)
+                if not target:
+                    continue
+                # Can't gift past your own survival line.
+                affordable = min(amount, max(0.0, agent.resources - 0.5))
+                if affordable <= 0:
+                    continue
+                agent.resources -= affordable
+                target.resources += affordable
+                # Witnesses = everyone in either location (public generosity).
+                witnesses = list(set(local_witnesses + [a.id for a in alive if a.location == target.location]))
+                transfer_event: Event = {
+                    "tick": tick_num,
+                    "type": "transfer",
+                    "agent": agent.id,
+                    "target": target.id,
+                    "amount": round(affordable, 2),
+                    "content": f"{agent.name} gifted {affordable:.1f} to {target.name}",
+                    "witnesses": witnesses,
+                }
+                self.world.event_log.append(transfer_event)
+                result.events.append(transfer_event)
+                target.memory.append(transfer_event)
+                # Generosity nudge: giver gains a bit of public reputation.
+                agent.reputation = max(-1.0, min(1.0, agent.reputation + 0.05))
+
+            # --- Attacks: drain target resources, witnesses punish attacker ---
+            for target_id, amount in decision.get("attacks", {}).items():
+                target = next((a for a in alive if a.id == target_id), None)
+                if not target or target.id == agent.id:
+                    continue
+                if target.location != agent.location:
+                    continue  # attacks require co-location
+                atk = agent.traits.get("strength", 0.5)
+                dfn = target.traits.get("strength", 0.5)
+                success_p = max(0.15, min(0.9, 0.5 + (atk - dfn) * 0.6))
+                success = random.random() < success_p
+                drained = 0.0
+                if success:
+                    drained = min(amount, max(0.0, target.resources))
+                    target.resources -= drained
+                    # Half is lost in the struggle — the rest goes to the attacker.
+                    agent.resources += drained * 0.5
+                # Record the attack itself.
+                atk_event: Event = {
+                    "tick": tick_num,
+                    "type": "attack",
+                    "agent": agent.id,
+                    "target": target.id,
+                    "amount": round(drained, 2),
+                    "success": success,
+                    "content": (
+                        f"{agent.name} attacked {target.name} and drained {drained:.1f}"
+                        if success else
+                        f"{agent.name} attacked {target.name} but failed"
+                    ),
+                    "witnesses": local_witnesses,
+                }
+                self.world.event_log.append(atk_event)
+                result.events.append(atk_event)
+                target.memory.append(atk_event)
+                if target.id not in target.rivals:
+                    target.rivals.append(agent.id)
+                # Resource theft shows up as a NEGATIVE transfer so postmortem can detect resource_warfare.
+                if success and drained > 0:
+                    theft_event: Event = {
+                        "tick": tick_num,
+                        "type": "transfer",
+                        "agent": agent.id,
+                        "target": target.id,
+                        "amount": round(-drained, 2),
+                        "content": f"{agent.name} stole {drained:.1f} from {target.name}",
+                        "witnesses": local_witnesses,
+                    }
+                    self.world.event_log.append(theft_event)
+                    result.events.append(theft_event)
+                # Witnesses (everyone local except attacker) recoil — public criticism.
+                witness_penalty = -0.08 if success else -0.04
+                for wid in local_witnesses:
+                    if wid == agent.id:
+                        continue
+                    agent.reputation = max(-1.0, min(1.0, agent.reputation + witness_penalty))
+                # Break any friendship with the victim; attack shatters trust.
+                if target.id in agent.friendships:
+                    agent.friendships.remove(target.id)
+                if agent.id in target.friendships:
+                    target.friendships.remove(agent.id)
+                if target.id in agent.pacts:
+                    agent.pacts.remove(target.id)
+                if agent.id in target.pacts:
+                    target.pacts.remove(agent.id)
+
+            # --- Private messages: only sender and recipient see them ---
+            for target_id, text in decision.get("messages", {}).items():
+                target = next((a for a in alive if a.id == target_id), None)
+                if not target:
+                    continue
+                msg_event: Event = {
+                    "tick": tick_num,
+                    "type": "message",
+                    "agent": agent.id,
+                    "target": target.id,
+                    "content": f"{agent.name} → {target.name}: {text}",
+                    "witnesses": [agent.id, target.id],
+                }
+                self.world.event_log.append(msg_event)
+                result.events.append(msg_event)
+                target.memory.append(msg_event)
+                target.inbox.append(msg_event)
+
+        # --- Pact sealing: match mutual offers made this same tick ---
+        sealed_pairs: set[tuple[str, str]] = set()
+        for a_id, target_id in pact_offers.items():
+            if pact_offers.get(target_id) != a_id:
+                continue
+            pair = tuple(sorted([a_id, target_id]))
+            if pair in sealed_pairs:
+                continue
+            sealed_pairs.add(pair)  # type: ignore[arg-type]
+            a = next((x for x in alive if x.id == a_id), None)
+            b = next((x for x in alive if x.id == target_id), None)
+            if not a or not b:
+                continue
+            if target_id not in a.pacts:
+                a.pacts.append(target_id)
+            if a_id not in b.pacts:
+                b.pacts.append(a_id)
+            # Pact partners are always also friends.
+            if target_id not in a.friendships:
+                a.friendships.append(target_id)
+            if a_id not in b.friendships:
+                b.friendships.append(a_id)
+            witnesses = list({x.id for x in alive if x.location in (a.location, b.location)})
+            pact_event: Event = {
+                "tick": tick_num,
+                "type": "pact",
+                "agent": a.id,
+                "target": b.id,
+                "content": f"{a.name} and {b.name} sealed a pact",
+                "witnesses": witnesses,
+            }
+            self.world.event_log.append(pact_event)
+            result.events.append(pact_event)
+
+        # --- Pact loyalty dividend: bleed reputation into sealed partners each tick ---
+        for agent in alive:
+            for p_id in list(agent.pacts):
+                partner = next((x for x in alive if x.id == p_id), None)
+                if not partner:
+                    continue
+                partner.reputation = max(-1.0, min(1.0, partner.reputation + 0.05))
 
         # --- Rumor spread ---
         if self.spread:

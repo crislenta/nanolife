@@ -175,25 +175,50 @@ class LLMCognitive(CognitiveFunction):
                 "mode": "productive",
                 "action": "work",
                 "reputation_deltas": {},
+                "gifts": {},
+                "attacks": {},
+                "messages": {},
+                "pact_with": None,
                 "new_friend": None,
             }
 
         name_to_id = {a.name.lower(): a.id for a in agents}
+
+        def _resolve(name: Any) -> str | None:
+            if not isinstance(name, str):
+                return None
+            return name_to_id.get(name.lower())
 
         mode = str(data.get("mode", "productive")).lower().strip()
         if mode not in ("productive", "social", "rest"):
             mode = "productive"
 
         rep_deltas: dict[str, float] = {}
-        for name, delta in data.get("reputation_deltas", {}).items():
-            aid = name_to_id.get(name.lower())
+        for name, delta in (data.get("reputation_deltas") or {}).items():
+            aid = _resolve(name)
             if aid and isinstance(delta, (int, float)):
                 rep_deltas[aid] = max(-0.3, min(0.3, float(delta)))
 
-        new_friend = None
-        friend_name = data.get("new_friend")
-        if friend_name and isinstance(friend_name, str):
-            new_friend = name_to_id.get(friend_name.lower())
+        gifts: dict[str, float] = {}
+        for name, amount in (data.get("gifts") or {}).items():
+            aid = _resolve(name)
+            if aid and isinstance(amount, (int, float)) and amount > 0:
+                gifts[aid] = max(0.1, min(5.0, float(amount)))
+
+        attacks: dict[str, float] = {}
+        for name, amount in (data.get("attacks") or {}).items():
+            aid = _resolve(name)
+            if aid and isinstance(amount, (int, float)) and amount > 0:
+                attacks[aid] = max(1.0, min(5.0, float(amount)))
+
+        messages: dict[str, str] = {}
+        for name, text in (data.get("messages") or {}).items():
+            aid = _resolve(name)
+            if aid and isinstance(text, str) and text.strip():
+                messages[aid] = text.strip()[:200]
+
+        pact_with = _resolve(data.get("pact_with"))
+        new_friend = _resolve(data.get("new_friend"))
 
         raw_loc = data.get("new_location")
         new_location = raw_loc if isinstance(raw_loc, str) and raw_loc.lower() not in ("null", "none", "") else None
@@ -203,6 +228,10 @@ class LLMCognitive(CognitiveFunction):
             "mode": mode,
             "action": str(data.get("action", "work"))[:300],
             "reputation_deltas": rep_deltas,
+            "gifts": gifts,
+            "attacks": attacks,
+            "messages": messages,
+            "pact_with": pact_with,
             "new_friend": new_friend,
             "new_location": new_location,
         }

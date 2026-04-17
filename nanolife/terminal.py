@@ -33,6 +33,8 @@ _GOLD = "#c9a84c"
 _MAGENTA = "#cc66ff"
 _DIM = "#555555"
 _ORANGE = "#ff8800"
+_PINK = "#ff66aa"
+_LIME = "#88ff44"
 _BG_PANEL = "#111118"
 
 
@@ -124,6 +126,7 @@ class Dashboard:
         layout.split_column(
             Layout(name="header", size=3),
             Layout(name="body", ratio=1),
+            Layout(name="drama", size=3),
             Layout(name="footer", size=3),
         )
 
@@ -131,7 +134,7 @@ class Dashboard:
             layout["body"].split_row(
                 Layout(name="left", size=18),
                 Layout(name="center", ratio=2),
-                Layout(name="right", size=32),
+                Layout(name="right", size=34),
             )
             layout["center"].split_column(
                 Layout(name="feed", ratio=1),
@@ -139,7 +142,7 @@ class Dashboard:
             )
             layout["right"].split_column(
                 Layout(name="agents", ratio=1),
-                Layout(name="spotlight", size=10),
+                Layout(name="sociogram", size=15),
             )
         else:
             layout["body"].split_row(
@@ -331,6 +334,227 @@ class Dashboard:
             Text(f'  "{e.get("content", "")[:60]}"', style="dim italic"),
         ]
         return Panel(Group(*lines), title="[bold]DEATH[/bold]", border_style=_RED, style=f"on {_BG_PANEL}")
+
+    # ── Sociogram (right-bottom in world view) ────────────────
+
+    def sociogram_panel(self) -> Panel:
+        """Compact NxN relationship matrix showing who feels what about whom."""
+        alive = sorted(self.world.alive_agents, key=lambda a: -a.reputation)
+        # Limit to keep the panel readable
+        show = alive[:10]
+        if not show:
+            return Panel(Text("  (no agents)", style=f"dim {_RED}"),
+                         title="[bold]SOCIOGRAM[/bold]", border_style=_MAGENTA, style=f"on {_BG_PANEL}")
+
+        # Build a recent-interaction map: (src_id, tgt_id) -> (glyph, style)
+        recent: dict[tuple[str, str], tuple[str, str]] = {}
+        # Scan recent events only (keeps the grid lively, not saturated)
+        window = self._all_events[-200:]
+        for e in window:
+            t = e.get("type", "")
+            src = e.get("agent", "")
+            tgt = e.get("target", "") or ""
+            if not src:
+                continue
+            if t == "reputation":
+                # agent=target, source=praiser under the new convention
+                praiser = e.get("source", "")
+                praised = e.get("agent", "")
+                if not praiser or not praised:
+                    continue
+                d = e.get("delta", 0)
+                if d > 0:
+                    recent[(praiser, praised)] = ("+", _GREEN)
+                elif d < 0:
+                    recent[(praiser, praised)] = ("−", _RED)
+            elif t == "transfer":
+                amt = e.get("amount", 0)
+                if amt > 0:
+                    recent[(src, tgt)] = ("$", _GOLD)
+                elif amt < 0:
+                    recent[(src, tgt)] = ("⚔", f"bold {_RED}")
+            elif t == "attack":
+                recent[(src, tgt)] = ("⚔", f"bold {_RED}")
+            elif t == "message":
+                key = (src, tgt)
+                if key not in recent:
+                    recent[key] = ("✉", _CYAN)
+
+        # Bilateral bonds override directional glyphs
+        ids = {a.id: a for a in show}
+        bond_overrides: dict[tuple[str, str], tuple[str, str]] = {}
+        for a in show:
+            for b_id in a.pacts:
+                if b_id in ids:
+                    bond_overrides[(a.id, b_id)] = ("♥", f"bold {_MAGENTA}")
+            for b_id in a.friendships:
+                if b_id in ids and (a.id, b_id) not in bond_overrides:
+                    bond_overrides[(a.id, b_id)] = ("~", _PINK)
+            for b_id in a.rivals:
+                if b_id in ids and (a.id, b_id) not in bond_overrides:
+                    bond_overrides[(a.id, b_id)] = ("!", _ORANGE)
+
+        # Build header row
+        lines: list[Text] = []
+        header = Text()
+        header.append("     ", style="dim")
+        for a in show:
+            header.append(f"{a.name[0].upper()} ", style=f"bold {_CYAN}")
+        lines.append(header)
+
+        for row_a in show:
+            row_line = Text()
+            init = row_a.name[:3].ljust(3)
+            rep_col = _GREEN if row_a.reputation > 0.5 else (_ORANGE if row_a.reputation > 0.2 else _RED)
+            row_line.append(f" {init} ", style=f"bold {rep_col}")
+            for col_a in show:
+                if row_a.id == col_a.id:
+                    # Self cell — a glyph encoding the agent's own rep/resources
+                    if row_a.resources < 3:
+                        glyph, style = "☠", _RED
+                    elif row_a.reputation > 0.6:
+                        glyph, style = "●", _GREEN
+                    elif row_a.reputation < 0.2:
+                        glyph, style = "●", _RED
+                    else:
+                        glyph, style = "●", _GOLD
+                    row_line.append(glyph, style=style)
+                    row_line.append(" ", style="dim")
+                    continue
+                key = (row_a.id, col_a.id)
+                if key in bond_overrides:
+                    glyph, style = bond_overrides[key]
+                elif key in recent:
+                    glyph, style = recent[key]
+                else:
+                    glyph, style = "·", "#333333"
+                row_line.append(glyph, style=style)
+                row_line.append(" ", style="dim")
+            lines.append(row_line)
+
+        # Legend
+        legend = Text()
+        legend.append(" ♥", style=f"bold {_MAGENTA}")
+        legend.append("pact ", style="dim")
+        legend.append("~", style=_PINK)
+        legend.append("friend ", style="dim")
+        legend.append("+", style=_GREEN)
+        legend.append("/", style="dim")
+        legend.append("−", style=_RED)
+        legend.append("rep ", style="dim")
+        legend.append("$", style=_GOLD)
+        legend.append("gift ", style="dim")
+        legend.append("⚔", style=_RED)
+        legend.append("atk ", style="dim")
+        legend.append("✉", style=_CYAN)
+        legend.append("msg", style="dim")
+        lines.append(legend)
+
+        return Panel(
+            Group(*lines),
+            title="[bold]SOCIOGRAM[/bold]",
+            border_style=_MAGENTA,
+            style=f"on {_BG_PANEL}",
+        )
+
+    # ── Drama ticker (between body and footer) ─────────────────
+
+    def drama_panel(self) -> Panel:
+        """One big dramatic headline for the most noteworthy recent event."""
+        if not self._all_events:
+            return Panel(Text("  (silence)", style=f"dim {_DIM}"), border_style="dim", style=f"on {_BG_PANEL}")
+
+        # Priority ranking: higher wins
+        priority = {
+            "attack": 100,
+            "pact": 95,
+            "death": 90,
+            "birth": 70,
+            "transfer": 60,
+            "friendship": 50,
+            "reputation": 20,
+            "message": 10,
+        }
+
+        # Search last 40 events for the most dramatic one
+        window = self._all_events[-40:]
+        best = None
+        best_score = -1
+        for e in window:
+            t = e.get("type", "")
+            base = priority.get(t, 0)
+            # Big transfers and strong reputation hits bump their score
+            if t == "transfer":
+                base += min(20, int(abs(e.get("amount", 0)) * 4))
+            if t == "reputation" and abs(e.get("delta", 0)) >= 0.25:
+                base += 15
+            if base >= best_score:
+                best_score = base
+                best = e
+
+        if best is None:
+            return Panel(Text("  (silence)", style=f"dim {_DIM}"), border_style="dim", style=f"on {_BG_PANEL}")
+
+        t = best.get("type", "")
+        tick = best.get("tick", 0)
+        content = best.get("content", "")[:120]
+
+        if t == "attack":
+            success = best.get("success", False)
+            verb = "STRUCK" if success else "LUNGED AT"
+            headline = Text()
+            headline.append(f"  ⚔ T{tick:04d}  ", style=f"bold {_RED}")
+            headline.append(verb, style=f"bold {_RED}")
+            headline.append(f"  {content}", style=_ORANGE)
+            border = _RED
+        elif t == "pact":
+            headline = Text()
+            headline.append(f"  ♥ T{tick:04d}  PACT SEALED  ", style=f"bold {_MAGENTA}")
+            headline.append(content, style=_PINK)
+            border = _MAGENTA
+        elif t == "death":
+            cause = best.get("cause", "?")
+            headline = Text()
+            headline.append(f"  ☠ T{tick:04d}  DEATH  ", style=f"bold {_RED}")
+            headline.append(f"{content} ({cause})", style=_RED)
+            border = _RED
+        elif t == "birth":
+            headline = Text()
+            headline.append(f"  ✦ T{tick:04d}  BIRTH  ", style=f"bold {_GREEN}")
+            headline.append(content, style=_LIME)
+            border = _GREEN
+        elif t == "transfer":
+            amt = best.get("amount", 0)
+            if amt > 0:
+                headline = Text()
+                headline.append(f"  $ T{tick:04d}  PATRONAGE  ", style=f"bold {_GOLD}")
+                headline.append(content, style=_GOLD)
+                border = _GOLD
+            else:
+                headline = Text()
+                headline.append(f"  ⚔ T{tick:04d}  THEFT  ", style=f"bold {_RED}")
+                headline.append(content, style=_ORANGE)
+                border = _RED
+        elif t == "friendship":
+            headline = Text()
+            headline.append(f"  ~ T{tick:04d}  BOND  ", style=f"bold {_PINK}")
+            headline.append(content, style=_MAGENTA)
+            border = _MAGENTA
+        elif t == "reputation":
+            delta = best.get("delta", 0)
+            tag = "PRAISE" if delta > 0 else "SCORN"
+            col = _GREEN if delta > 0 else _RED
+            headline = Text()
+            headline.append(f"  ★ T{tick:04d}  {tag}  ", style=f"bold {col}")
+            headline.append(content, style=col)
+            border = col
+        else:
+            headline = Text()
+            headline.append(f"  · T{tick:04d}  ", style="dim")
+            headline.append(content, style="dim")
+            border = "dim"
+
+        return Panel(headline, title="[bold]DRAMA[/bold]", border_style=border, style=f"on {_BG_PANEL}")
 
     # ── Minimap ───────────────────────────────────────────────
 
@@ -524,24 +748,34 @@ class Dashboard:
             self._map_flash_locs[k] = (ft, ttl - 1)
 
         # Register new flashes from this tick
+        def _loc_for(agent_id: str) -> str | None:
+            for a in self.world.agents:
+                if a.id == agent_id:
+                    return a.location
+            return None
+
         for e in self._tick_events:
-            loc_id = None
-            if e.get("type") == "death":
-                agent_id = e.get("agent", "")
-                for a in self.world.agents:
-                    if a.id == agent_id:
-                        loc_id = a.location
-                        break
+            t = e.get("type")
+            if t == "death":
+                loc_id = _loc_for(e.get("agent", ""))
                 if loc_id:
                     self._map_flash_locs[loc_id] = ("death", 3)
-            elif e.get("type") == "birth":
-                agent_id = e.get("agent", "")
-                for a in self.world.agents:
-                    if a.id == agent_id:
-                        loc_id = a.location
-                        break
+            elif t == "birth":
+                loc_id = _loc_for(e.get("agent", ""))
                 if loc_id:
                     self._map_flash_locs[loc_id] = ("birth", 2)
+            elif t == "attack":
+                loc_id = _loc_for(e.get("agent", ""))
+                if loc_id:
+                    self._map_flash_locs[loc_id] = ("attack", 3)
+            elif t == "pact":
+                loc_id = _loc_for(e.get("agent", ""))
+                if loc_id:
+                    self._map_flash_locs[loc_id] = ("pact", 3)
+            elif t == "transfer" and e.get("amount", 0) >= 2.0:
+                loc_id = _loc_for(e.get("agent", ""))
+                if loc_id:
+                    self._map_flash_locs[loc_id] = ("gift", 2)
 
         # Population glow: draw halos around busy locations
         for loc, agents in loc_agents.items():
@@ -601,9 +835,18 @@ class Dashboard:
             if is_flash and flash_type == "death":
                 marker_ch, marker_style = '☠', f'bold {_RED}'
                 name_style = _RED
+            elif is_flash and flash_type == "attack":
+                marker_ch, marker_style = '⚔', f'bold {_RED}'
+                name_style = _ORANGE
             elif is_flash and flash_type == "birth":
                 marker_ch, marker_style = '✦', f'bold {_GREEN}'
                 name_style = _GREEN
+            elif is_flash and flash_type == "pact":
+                marker_ch, marker_style = '♥', f'bold {_MAGENTA}'
+                name_style = _PINK
+            elif is_flash and flash_type == "gift":
+                marker_ch, marker_style = '$', f'bold {_GOLD}'
+                name_style = _GOLD
             elif loc == leader_loc:
                 marker_ch, marker_style = '♛', f'bold {_GOLD}'
                 name_style = f'bold {_GOLD}'
@@ -932,6 +1175,21 @@ class Dashboard:
         elif t == "rumor":
             line.append(f"{name_str} ", style="dim")
             line.append(f"≈ {content[:45]}...", style="dim italic")
+        elif t == "attack":
+            success = e.get("success", False)
+            amount = e.get("amount", 0)
+            style = f"bold {_RED}" if success else _ORANGE
+            glyph = "⚔" if success else "✗"
+            line.append(f"{name_str} ", style=f"bold {_RED}")
+            line.append(f"{glyph} {content}", style=style)
+            if success and amount:
+                line.append(f"  -${amount:.1f}", style=_RED)
+        elif t == "pact":
+            line.append(f"{name_str} ", style=f"bold {_MAGENTA}")
+            line.append(f"♥ {content}", style=_PINK)
+        elif t == "message":
+            line.append(f"{name_str} ", style=_CYAN)
+            line.append(f"✉ {content[:50]}", style=f"italic {_CYAN}")
         elif t == "compression":
             line.append("           ", style="dim")
             line.append("⟳ History compressed", style="dim yellow")
@@ -955,9 +1213,9 @@ class Dashboard:
         text.append("│ ", style="dim")
 
         # Emergence
-        max_ei = 11
+        max_ei = 14
         score = min(self._ei_score, max_ei)
-        bar_len = 11
+        bar_len = 14
         filled = "█" * score
         empty = "░" * (bar_len - score)
         bar_style = _GREEN if score >= 5 else (_ORANGE if score >= 3 else "dim")
@@ -979,6 +1237,9 @@ class Dashboard:
             "free_riding": _ORANGE,
             "generational_transmission": _CYAN,
             "cultural_drift": _MAGENTA,
+            "pact_bond": _PINK,
+            "conspiracy": _CYAN,
+            "vendetta": _RED,
         }
 
         for tag in self._ei_detected:
@@ -1020,9 +1281,11 @@ class Dashboard:
             layout["feed"].update(self.feed_panel())
             layout["minimap"].update(self.minimap_panel())
             layout["agents"].update(self.agents_panel())
-            layout["spotlight"].update(self.spotlight_panel())
+            layout["sociogram"].update(self.sociogram_panel())
         else:
             layout["detail"].update(self.detail_panel())
+
+        layout["drama"].update(self.drama_panel())
 
         return layout
 
@@ -1070,6 +1333,38 @@ class Dashboard:
             detected.add("death")
         if result.births > 0:
             detected.add("birth")
+
+        # Pact bond: any sealed pact at any time
+        for a in alive:
+            if a.pacts:
+                detected.add("pact_bond")
+                break
+
+        # Conspiracy: a triad with multiple private messages among them
+        msg_edges: dict[tuple[str, str], int] = {}
+        for e in self._all_events:
+            if e.get("type") == "message":
+                key = tuple(sorted([e.get("agent", ""), e.get("target", "")]))
+                msg_edges[key] = msg_edges.get(key, 0) + 1  # type: ignore[index]
+        live_edges = {pair for pair, c in msg_edges.items() if c >= 2}
+        if len(live_edges) >= 3:
+            adj: dict[str, set[str]] = {}
+            for a_id, b_id in live_edges:
+                adj.setdefault(a_id, set()).add(b_id)
+                adj.setdefault(b_id, set()).add(a_id)
+            for neighbours in adj.values():
+                if len(neighbours) >= 2:
+                    detected.add("conspiracy")
+                    break
+
+        # Vendetta: repeated attacks between same pair
+        attack_pairs: dict[tuple[str, str], int] = {}
+        for e in self._all_events:
+            if e.get("type") == "attack":
+                key = (e.get("agent", ""), e.get("target", ""))
+                attack_pairs[key] = attack_pairs.get(key, 0) + 1
+        if any(c >= 2 for c in attack_pairs.values()):
+            detected.add("vendetta")
 
         # Economic emergence (live)
         if alive and self._total_transfer_volume > 0:

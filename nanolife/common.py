@@ -28,6 +28,11 @@ class Event(TypedDict, total=False):
     goal: str
     witnesses: list[str]
     resources_changed: float
+    # Social primitives
+    target: str          # id of the agent being gifted/attacked/messaged/pacted with
+    amount: float        # resource delta: positive = gift, negative = stolen via attack
+    success: bool        # attack outcome
+    working: bool        # whether the action was productive (for UI)
 
 
 @dataclass
@@ -48,6 +53,11 @@ class Agent:
     location: str | None = None
 
     lifespan: int = 365  # ticks before natural death
+
+    # Social bonds
+    pacts: list[str] = field(default_factory=list)         # sealed pact partners (bilateral, stronger than friendship)
+    rivals: list[str] = field(default_factory=list)        # agents who attacked this one (grudges)
+    inbox: list[Event] = field(default_factory=list)       # private messages received since last tick
 
     def age(self, current_tick: int) -> int:
         return current_tick - self.birth_tick

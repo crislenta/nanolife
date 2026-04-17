@@ -82,7 +82,7 @@ Everything happens in the terminal (Figure 2). A fullscreen Rich dashboard shows
 
 When the simulation ends — whether by tick limit, extinction, or Ctrl+C — a **postmortem** runs automatically:
 
-1. **Emergence analysis** (instant, no LLM) — detects 11 phenomena (alliances, leadership, factions, betrayals, ostracism, generational transmission, cultural drift, wealth concentration, economic dependency, resource warfare, free riding)
+1. **Emergence analysis** (instant, no LLM) — detects 14 phenomena (alliances, leadership, factions, betrayals, ostracism, generational transmission, cultural drift, wealth concentration, economic dependency, resource warfare, free riding, pact bonds, conspiracies, vendettas)
 2. **Academic HTML report** (LLM) — a formal evaluation paper with agent case studies, economic analysis, and critical timeline — auto-opens in browser
 3. **Charts** (matplotlib) — survival, alignment, reputation, drama curves
 4. **Social graph viewer** — interactive HTML visualization of the social network
@@ -148,6 +148,20 @@ events logged → reputation updated → resources deplete →
 births triggered → deaths triggered → log compressed →
 next tick
 ```
+
+### Social Primitives
+
+Each tick, besides talking and moving, every agent may issue any combination of these directed actions. Every primitive is a single JSON field in the LLM's decision output — all downstream dynamics are emergent.
+
+| Primitive | Effect |
+| --------- | ------ |
+| `reputation_deltas` | public praise/criticism (witnessed by co-located agents, -0.3 to +0.3) |
+| `gifts` | transfer resources to a named agent — creates patronage debts |
+| `attacks` | drain a co-located rival; witnesses criticize the attacker; theft logged as a negative transfer |
+| `messages` | private directed text only the recipient sees — fuel for conspiracies |
+| `pact_with` | propose a mutual pact; seals only if the other agent proposes back the same tick; sealed partners bleed reputation into each other every tick — the strongest shield against decay |
+
+The TUI has a live **sociogram** showing the full relationship matrix (♥ pacts, ~ friends, +/− reputation, $ gifts, ⚔ attacks, ✉ private messages) plus a **drama ticker** that surfaces the most noteworthy recent event as a headline.
 
 ### Intellectual Lineage
 

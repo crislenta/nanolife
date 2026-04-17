@@ -244,6 +244,62 @@ def _detect_resource_warfare(events: list[dict]) -> list[dict]:
     return results[:5]
 
 
+def _detect_pact_bond(events: list[dict]) -> list[dict]:
+    """Pacts are the strongest social primitive — at least one sealed pact is notable."""
+    pacts = [e for e in events if e.get("type") == "pact"]
+    if not pacts:
+        return []
+    pairs = set()
+    for p in pacts:
+        a = p.get("agent", "")
+        b = p.get("target", "")
+        if a and b:
+            pairs.add(tuple(sorted([a, b])))
+    return [{"phenomenon": "pact_bond", "pacts_sealed": len(pairs), "pairs": [list(p) for p in list(pairs)[:5]]}] if pairs else []
+
+
+def _detect_conspiracy(events: list[dict]) -> list[dict]:
+    """Secret coordination: 3+ private messages exchanged among the same 3+ agents."""
+    msg_graph: dict[tuple[str, str], int] = defaultdict(int)
+    for e in events:
+        if e.get("type") == "message":
+            s = e.get("agent", "")
+            t = e.get("target", "")
+            if s and t:
+                msg_graph[tuple(sorted([s, t]))] += 1
+
+    active_pairs = {pair for pair, count in msg_graph.items() if count >= 2}
+    if len(active_pairs) < 3:
+        return []
+
+    # Build adjacency and look for a connected cluster of 3+ agents
+    adj: dict[str, set[str]] = defaultdict(set)
+    for a, b in active_pairs:
+        adj[a].add(b)
+        adj[b].add(a)
+
+    for node, neighbours in adj.items():
+        if len(neighbours) >= 2:
+            cluster = {node} | neighbours
+            if len(cluster) >= 3:
+                return [{"phenomenon": "conspiracy", "cluster_size": len(cluster), "agents": list(cluster)[:8]}]
+    return []
+
+
+def _detect_vendetta(events: list[dict]) -> list[dict]:
+    """Repeated attacks from the same source to the same target — personal warfare."""
+    attack_pairs: dict[tuple[str, str], int] = defaultdict(int)
+    for e in events:
+        if e.get("type") == "attack":
+            s = e.get("agent", "")
+            t = e.get("target", "")
+            if s and t:
+                attack_pairs[(s, t)] += 1
+    vendettas = [{"phenomenon": "vendetta", "attacker": s, "victim": t, "strikes": c}
+                 for (s, t), c in attack_pairs.items() if c >= 2]
+    return vendettas[:5]
+
+
 def _detect_free_riding(events: list[dict]) -> list[dict]:
     """Detect agents who rarely work but survive via transfers from others."""
     work_count: dict[str, int] = defaultdict(int)
@@ -296,13 +352,16 @@ def analyze(run_dir: Path) -> dict:
     all_phenomena.extend(_detect_economic_dependency(events))
     all_phenomena.extend(_detect_resource_warfare(events))
     all_phenomena.extend(_detect_free_riding(events))
+    all_phenomena.extend(_detect_pact_bond(events))
+    all_phenomena.extend(_detect_conspiracy(events))
+    all_phenomena.extend(_detect_vendetta(events))
 
     type_counts: dict[str, int] = defaultdict(int)
     for e in events:
         type_counts[e.get("type", "unknown")] += 1
 
     phenomena_types = set(p["phenomenon"] for p in all_phenomena)
-    max_phenomena = 11
+    max_phenomena = 14
 
     return {
         "total_events": len(events),
@@ -334,6 +393,9 @@ def _extract_rich_data(run_dir: Path) -> dict:
     world_events = [e for e in events if e.get("type") == "world"]
     compressions = [e for e in events if e.get("type") == "compression"]
     transfers = [e for e in events if e.get("type") == "transfer"]
+    messages = [e for e in events if e.get("type") == "message"]
+    attacks = [e for e in events if e.get("type") == "attack"]
+    pacts = [e for e in events if e.get("type") == "pact"]
 
     max_tick = max((e.get("tick", 0) for e in events), default=0)
 
@@ -353,10 +415,10 @@ def _extract_rich_data(run_dir: Path) -> dict:
         agent_friendships = [e["content"] for e in friendships if e.get("agent") == agent_id]
         agent_improvements = [e for e in improvements if e.get("agent") == agent_id]
 
-        praise_given = [e for e in rep_events if e.get("agent") == agent_id and e.get("delta", 0) > 0]
-        criticism_given = [e for e in rep_events if e.get("agent") == agent_id and e.get("delta", 0) < 0]
-        praise_received = [e for e in rep_events if name in e.get("content", "") and "praised" in e.get("content", "") and e.get("agent") != agent_id]
-        criticism_received = [e for e in rep_events if name in e.get("content", "") and "criticized" in e.get("content", "") and e.get("agent") != agent_id]
+        praise_given = [e for e in rep_events if e.get("source") == agent_id and e.get("delta", 0) > 0]
+        criticism_given = [e for e in rep_events if e.get("source") == agent_id and e.get("delta", 0) < 0]
+        praise_received = [e for e in rep_events if e.get("agent") == agent_id and e.get("delta", 0) > 0]
+        criticism_received = [e for e in rep_events if e.get("agent") == agent_id and e.get("delta", 0) < 0]
 
         goal = ""
         if birth_ev:
@@ -436,6 +498,33 @@ def _extract_rich_data(run_dir: Path) -> dict:
                 "text": f"{sender} transferred {amount:+.1f} resource to {receiver}: {e.get('content', '')}",
             })
 
+    for e in attacks:
+        atk = id_to_name.get(e.get("agent", ""), "?")
+        vic = id_to_name.get(e.get("target", ""), "?")
+        dramatic_moments.append({
+            "tick": e.get("tick"),
+            "type": "ATTACK",
+            "text": f"{atk} attacked {vic} (drained {e.get('amount', 0):.1f}, success={e.get('success', False)})",
+        })
+
+    for e in pacts:
+        a = id_to_name.get(e.get("agent", ""), "?")
+        b = id_to_name.get(e.get("target", ""), "?")
+        dramatic_moments.append({
+            "tick": e.get("tick"),
+            "type": "PACT",
+            "text": f"{a} and {b} sealed a pact",
+        })
+
+    for e in messages:
+        s = id_to_name.get(e.get("agent", ""), "?")
+        t = id_to_name.get(e.get("target", ""), "?")
+        dramatic_moments.append({
+            "tick": e.get("tick"),
+            "type": "MESSAGE",
+            "text": f"{s} privately told {t}: {e.get('content', '')[:80]}",
+        })
+
     conflict_keywords = [
         "belittle", "attack", "betray", "threaten", "warn", "confront",
         "manipulat", "deceiv", "scheme", "plot", "assassin", "poison",
@@ -512,6 +601,9 @@ def _extract_rich_data(run_dir: Path) -> dict:
         "total_actions": len(actions),
         "total_transfers": len(transfers),
         "total_transfer_volume": round(total_transfer_volume, 1),
+        "total_messages": len(messages),
+        "total_attacks": len(attacks),
+        "total_pacts": len(pacts),
         "global_work_rate": round(global_work_rate, 2),
         "final_alive": len(births) - len(deaths),
         "scenario_flavor": scenario,
