@@ -3,3 +3,4 @@ openai
 rich
 matplotlib
 numpy
+aiohttp

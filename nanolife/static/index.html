@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>nanolife · live</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #0b0b12;
+    --panel: #14141c;
+    --panel-2: #1a1a26;
+    --border: #24243a;
+    --text: #e6e6f0;
+    --dim: #7a7a90;
+    --accent: #00ccff;
+    --gold: #c9a84c;
+    --pink: #ff66aa;
+    --magenta: #cc66ff;
+    --green: #00ff88;
+    --lime: #88ff44;
+    --red: #ff3344;
+    --orange: #ff8800;
+    --rep-bad: #ff3344;
+    --rep-ok: #ffaa22;
+    --rep-good: #00ff88;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: "JetBrains Mono", "Fira Code", "SF Mono", Menlo, monospace;
+    height: 100%; overflow: hidden; font-size: 13px;
+  }
+
+  /* ── layout ── */
+  .app {
+    display: grid;
+    grid-template-rows: 56px 52px 1fr 40px;
+    grid-template-columns: 300px 1fr 380px;
+    grid-template-areas:
+      "header header header"
+      "drama drama drama"
+      "stats center sociogram"
+      "footer footer footer";
+    height: 100vh; gap: 8px; padding: 8px;
+  }
+
+  header.h {
+    grid-area: header;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    background: linear-gradient(135deg, #10101a 0%, #1a0f1e 100%);
+    border: 1px solid var(--border); border-radius: 6px;
+  }
+  header.h .title { font-size: 1.15rem; letter-spacing: 0.08em; }
+  header.h .title b { color: var(--pink); }
+  header.h .title span { color: var(--gold); margin-left: 10px; }
+  header.h .stats { display: flex; gap: 20px; align-items: baseline; }
+  header.h .stats .pill {
+    font-size: 0.85em; color: var(--dim);
+  }
+  header.h .stats .pill b {
+    color: var(--text); font-size: 1.1em; margin-left: 4px;
+  }
+  header.h .stats .pop b { color: var(--green); }
+  header.h .stats .born b { color: var(--accent); }
+  header.h .stats .dead b { color: var(--red); }
+  header.h .stats .cost b { color: var(--orange); }
+
+  /* ── drama ticker ── */
+  .drama {
+    grid-area: drama;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 16px;
+    display: flex; align-items: center; gap: 14px;
+    transition: border-color 0.3s, background 0.5s;
+    overflow: hidden;
+  }
+  .drama.attack { border-color: var(--red); background: linear-gradient(90deg, #2a0a10 0%, var(--panel) 40%); }
+  .drama.pact   { border-color: var(--magenta); background: linear-gradient(90deg, #1a0a2a 0%, var(--panel) 40%); }
+  .drama.death  { border-color: var(--red); background: linear-gradient(90deg, #2a0a10 0%, var(--panel) 40%); }
+  .drama.birth  { border-color: var(--green); background: linear-gradient(90deg, #0a2a18 0%, var(--panel) 40%); }
+  .drama.gift   { border-color: var(--gold); background: linear-gradient(90deg, #2a220a 0%, var(--panel) 40%); }
+  .drama.praise { border-color: var(--green); }
+  .drama.scorn  { border-color: var(--red); }
+  .drama .tag {
+    font-weight: 700; letter-spacing: 0.1em; font-size: 0.9em;
+    padding: 4px 10px; border-radius: 3px; background: var(--panel-2);
+    color: var(--gold);
+  }
+  .drama.attack .tag { color: var(--red); background: #300; }
+  .drama.pact   .tag { color: var(--magenta); background: #201030; }
+  .drama.death  .tag { color: var(--red); background: #300; }
+  .drama.birth  .tag { color: var(--green); background: #0a2a18; }
+  .drama.gift   .tag { color: var(--gold); background: #2a220a; }
+  .drama .text { flex: 1; font-size: 0.95em; }
+  .drama .ts { color: var(--dim); font-size: 0.8em; }
+
+  /* ── stats panel ── */
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .panel h3 {
+    margin: 0 0 10px; font-size: 0.85em; letter-spacing: 0.12em;
+    color: var(--accent); text-transform: uppercase;
+    border-bottom: 1px solid var(--border); padding-bottom: 6px;
+  }
+  .stats-panel { grid-area: stats; }
+  .stats-panel .row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; font-size: 0.88em;
+  }
+  .stats-panel .row span:first-child { color: var(--dim); }
+  .stats-panel .row span:last-child { color: var(--text); font-variant-numeric: tabular-nums; }
+  .bar {
+    height: 6px; background: #1a1a2a; border-radius: 3px;
+    overflow: hidden; margin: 4px 0 10px;
+  }
+  .bar > div { height: 100%; transition: width 0.5s; }
+  .bar.harsh > div { background: var(--orange); }
+  .bar.res > div { background: var(--green); }
+
+  .roster { flex: 1; overflow-y: auto; margin-top: 10px; }
+  .roster h4 {
+    margin: 8px 0 4px; font-size: 0.75em; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .agent-row {
+    display: grid; grid-template-columns: 10px 1fr auto auto; gap: 6px;
+    padding: 4px 0; font-size: 0.85em; align-items: center;
+    cursor: pointer; border-radius: 3px; padding-left: 3px;
+    transition: background 0.2s;
+  }
+  .agent-row:hover { background: var(--panel-2); }
+  .agent-row.selected { background: #1f1f32; }
+  .agent-row .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .agent-row.alive .dot { background: var(--green); }
+  .agent-row.dead .dot { background: var(--red); }
+  .agent-row .name { color: var(--text); }
+  .agent-row.dead .name { color: var(--dim); text-decoration: line-through; }
+  .agent-row .rep { font-variant-numeric: tabular-nums; font-size: 0.85em; }
+  .agent-row .res { font-variant-numeric: tabular-nums; font-size: 0.85em; color: var(--gold); }
+  .rep.good { color: var(--green); }
+  .rep.ok { color: var(--rep-ok); }
+  .rep.bad { color: var(--red); }
+
+  /* ── center: feed + detail ── */
+  .center {
+    grid-area: center;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 0;
+  }
+  .feed { flex: 1; overflow-y: auto; font-size: 0.82em; line-height: 1.5; }
+  .event {
+    display: grid; grid-template-columns: 56px 90px 22px 1fr;
+    gap: 6px; padding: 2px 0; align-items: baseline;
+    animation: slideIn 0.3s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .event .tick { color: var(--dim); font-size: 0.85em; }
+  .event .actor { color: var(--text); font-weight: 600; font-size: 0.88em; }
+  .event .glyph { text-align: center; }
+  .event .text { color: var(--text); }
+
+  .event.thought .text { color: var(--dim); font-style: italic; }
+  .event.action .text { color: #aaa; }
+  .event.birth { color: var(--green); } .event.birth .glyph { color: var(--green); }
+  .event.death { color: var(--red); } .event.death .glyph { color: var(--red); }
+  .event.death .text { color: var(--red); }
+  .event.friendship .glyph { color: var(--pink); } .event.friendship .text { color: #c58bb5; }
+  .event.reputation .glyph { color: var(--gold); }
+  .event.reputation.positive .text { color: var(--green); }
+  .event.reputation.negative .text { color: var(--red); }
+  .event.transfer .glyph { color: var(--gold); }
+  .event.transfer.positive .text { color: var(--gold); }
+  .event.transfer.negative .text { color: var(--red); }
+  .event.attack .glyph { color: var(--red); font-weight: 700; }
+  .event.attack .text { color: var(--orange); }
+  .event.pact .glyph { color: var(--magenta); font-weight: 700; }
+  .event.pact .text { color: var(--pink); }
+  .event.message .glyph { color: var(--accent); }
+  .event.message .text { color: var(--accent); font-style: italic; }
+  .event.rumor .text { color: var(--dim); font-style: italic; }
+  .event.move .text { color: var(--dim); }
+  .event.improvement .text { color: #5a8aaa; font-size: 0.9em; }
+  .event.world { background: #0f0f18; }
+  .event.world .text { color: var(--gold); }
+
+  .detail {
+    max-height: 180px; overflow-y: auto; font-size: 0.85em;
+    padding: 8px 10px;
+  }
+  .detail .hline { display: flex; gap: 14px; align-items: baseline; margin-bottom: 4px; }
+  .detail .hline .name { font-weight: 700; color: var(--pink); font-size: 1.05em; }
+  .detail .hline .meta { color: var(--dim); }
+  .detail .goal { color: var(--gold); margin-bottom: 6px; font-size: 0.85em; }
+  .detail .rels { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .detail .rels span {
+    padding: 2px 8px; border-radius: 3px; font-size: 0.8em;
+    border: 1px solid transparent;
+  }
+  .detail .rels .pact { color: var(--magenta); border-color: var(--magenta); }
+  .detail .rels .friend { color: var(--pink); border-color: #553355; }
+  .detail .rels .rival { color: var(--orange); border-color: #553322; }
+
+  /* ── sociogram (force graph) ── */
+  .sociogram-panel { grid-area: sociogram; padding: 8px; }
+  #socio { width: 100%; height: 100%; display: block; }
+  #socio circle { cursor: pointer; }
+  #socio text { font-size: 10px; fill: var(--text); pointer-events: none; }
+
+  /* ── footer ── */
+  footer.f {
+    grid-area: footer;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 16px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 0.82em;
+  }
+  footer.f .ei-bar {
+    display: inline-flex; gap: 1px;
+  }
+  footer.f .ei-bar span {
+    display: inline-block; width: 10px; height: 14px;
+    background: #2a2a3a; border-radius: 1px;
+  }
+  footer.f .ei-bar span.on { background: var(--lime); }
+  footer.f .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  footer.f .tags span {
+    padding: 2px 6px; background: var(--panel-2); border-radius: 2px;
+    font-size: 0.85em;
+  }
+  footer.f .tag-alliance, footer.f .tag-leadership, footer.f .tag-conspiracy { color: var(--accent); }
+  footer.f .tag-pact_bond { color: var(--pink); }
+  footer.f .tag-faction_split, footer.f .tag-cultural_drift { color: var(--magenta); }
+  footer.f .tag-wealth_concentration, footer.f .tag-economic_dependency { color: var(--gold); }
+  footer.f .tag-betrayal, footer.f .tag-ostracism, footer.f .tag-free_riding { color: var(--orange); }
+  footer.f .tag-resource_warfare, footer.f .tag-vendetta, footer.f .tag-death { color: var(--red); }
+  footer.f .tag-birth, footer.f .tag-generational_transmission { color: var(--green); }
+  footer.f .status {
+    margin-left: auto; color: var(--dim);
+  }
+  footer.f .status.connected::before { content: "● "; color: var(--green); }
+  footer.f .status.disconnected::before { content: "● "; color: var(--red); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="h">
+    <div class="title"><b>nanolife</b><span id="scenario">—</span></div>
+    <div class="stats">
+      <span class="pill">day <b id="day">—</b></span>
+      <span class="pill">month <b id="month">—</b></span>
+      <span class="pill">year <b id="year">—</b></span>
+      <span class="pill">tick <b id="tick">—</b></span>
+      <span class="pill pop">pop <b id="pop">0</b></span>
+      <span class="pill born">born <b id="born">0</b></span>
+      <span class="pill dead">dead <b id="dead">0</b></span>
+      <span class="pill cost">$<b id="cost">0.00</b></span>
+    </div>
+  </header>
+
+  <div class="drama" id="drama">
+    <span class="tag" id="dramaTag">IDLE</span>
+    <span class="text" id="dramaText">awaiting first tick…</span>
+    <span class="ts" id="dramaTick"></span>
+  </div>
+
+  <aside class="panel stats-panel">
+    <h3>world</h3>
+    <div class="row"><span>harshness</span><span id="harshness">—</span></div>
+    <div class="bar harsh"><div id="harshBar" style="width:0%"></div></div>
+    <div class="row"><span>resources</span><span id="totalRes">—</span></div>
+    <div class="bar res"><div id="resBar" style="width:0%"></div></div>
+    <div class="row"><span>transfers</span><span id="transfers">0</span></div>
+    <div class="row"><span>messages</span><span id="msgs">0</span></div>
+    <div class="row"><span>attacks</span><span id="atks">0</span></div>
+    <div class="row"><span>pacts</span><span id="pcts">0</span></div>
+
+    <h3 style="margin-top: 14px;">agents</h3>
+    <div class="roster" id="roster"></div>
+  </aside>
+
+  <section class="center">
+    <div class="panel" style="flex: 1; overflow: hidden;">
+      <h3>feed</h3>
+      <div class="feed" id="feed"></div>
+    </div>
+    <div class="panel detail" id="detail">
+      <div style="color: var(--dim)">click an agent to see their profile</div>
+    </div>
+  </section>
+
+  <aside class="panel sociogram-panel">
+    <h3>sociogram</h3>
+    <svg id="socio" viewBox="0 0 380 380" preserveAspectRatio="xMidYMid meet"></svg>
+  </aside>
+
+  <footer class="f">
+    <span style="color: var(--dim);">emergence</span>
+    <span class="ei-bar" id="eiBar"></span>
+    <span id="eiScore" style="color: var(--text); font-variant-numeric: tabular-nums;">0/14</span>
+    <span class="tags" id="eiTags"></span>
+    <span class="status disconnected" id="status">connecting</span>
+  </footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+let state = null;
+let selectedAgentId = null;
+let totals = { transfers: 0, messages: 0, attacks: 0, pacts: 0 };
+
+const GLYPHS = {
+  birth: "+", death: "☠", friendship: "~", reputation: "★",
+  transfer: "$", attack: "⚔", pact: "♥", message: "✉",
+  thought: "…", action: "·", move: "→", rumor: "≈",
+  improvement: "◆", world: "◇", compression: "⟳",
+};
+
+function agentName(id) {
+  if (!state) return id.slice(0, 8);
+  const a = state.agents.find((x) => x.id === id);
+  return a ? a.name : id.slice(0, 8);
+}
+
+function repClass(rep) {
+  if (rep >= 0.5) return "good";
+  if (rep >= 0.2) return "ok";
+  return "bad";
+}
+
+function formatEvent(e) {
+  const t = e.type || "?";
+  const div = document.createElement("div");
+  div.className = `event ${t}`;
+  const tick = document.createElement("span");
+  tick.className = "tick";
+  tick.textContent = `T${String(e.tick || 0).padStart(4, "0")}`;
+  const actor = document.createElement("span");
+  actor.className = "actor";
+  actor.textContent = e.agent ? agentName(e.agent).slice(0, 10) : "";
+  const glyph = document.createElement("span");
+  glyph.className = "glyph";
+  glyph.textContent = GLYPHS[t] || "·";
+  const text = document.createElement("span");
+  text.className = "text";
+  let content = e.content || "";
+
+  if (t === "reputation") {
+    const d = e.delta || 0;
+    div.classList.add(d >= 0 ? "positive" : "negative");
+    content += ` (${d > 0 ? "+" : ""}${d.toFixed(2)})`;
+  }
+  if (t === "transfer") {
+    const amt = e.amount || 0;
+    div.classList.add(amt >= 0 ? "positive" : "negative");
+  }
+  if (t === "attack") {
+    content = (e.success ? "✓ " : "✗ ") + content;
+  }
+  text.textContent = content;
+
+  div.appendChild(tick);
+  div.appendChild(actor);
+  div.appendChild(glyph);
+  div.appendChild(text);
+  return div;
+}
+
+function updateFeed(events) {
+  const feed = $("feed");
+  // Skip thought events (private noise) — showing them crowds the feed
+  const visible = events.filter((e) => !["thought", "improvement", "compression"].includes(e.type));
+  for (const e of visible) feed.appendChild(formatEvent(e));
+  // Trim to last 200
+  while (feed.children.length > 200) feed.removeChild(feed.firstChild);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function updateDrama(events) {
+  // Pick the most dramatic event of this tick
+  const priority = {
+    attack: 100, pact: 95, death: 90, birth: 70,
+    transfer: 60, friendship: 50, reputation: 20, message: 10,
+  };
+  let best = null, bestScore = -1;
+  for (const e of events) {
+    let s = priority[e.type] || 0;
+    if (e.type === "transfer") s += Math.min(20, Math.abs(e.amount || 0) * 4);
+    if (e.type === "reputation" && Math.abs(e.delta || 0) >= 0.25) s += 15;
+    if (s >= bestScore) { bestScore = s; best = e; }
+  }
+  if (!best) return;
+
+  const el = $("drama");
+  el.className = "drama";
+  let tag = best.type.toUpperCase();
+  if (best.type === "transfer") {
+    tag = (best.amount || 0) >= 0 ? "PATRONAGE" : "THEFT";
+    el.classList.add((best.amount || 0) >= 0 ? "gift" : "attack");
+  } else if (best.type === "reputation") {
+    tag = (best.delta || 0) >= 0 ? "PRAISE" : "SCORN";
+    el.classList.add((best.delta || 0) >= 0 ? "praise" : "scorn");
+  } else {
+    el.classList.add(best.type);
+  }
+  $("dramaTag").textContent = tag;
+  $("dramaText").textContent = best.content || "";
+  $("dramaTick").textContent = `T${best.tick || 0}`;
+}
+
+function updateRoster() {
+  const alive = state.agents.filter((a) => a.alive).sort((a, b) => b.reputation - a.reputation);
+  const dead = state.agents.filter((a) => !a.alive);
+
+  const roster = $("roster");
+  roster.innerHTML = "";
+  for (const a of alive) {
+    const row = document.createElement("div");
+    row.className = "agent-row alive" + (a.id === selectedAgentId ? " selected" : "");
+    row.dataset.id = a.id;
+    row.innerHTML =
+      `<div class="dot"></div>` +
+      `<div class="name">${a.name}</div>` +
+      `<div class="rep ${repClass(a.reputation)}">${a.reputation.toFixed(2)}</div>` +
+      `<div class="res">$${a.resources.toFixed(0)}</div>`;
+    row.onclick = () => { selectedAgentId = a.id; updateRoster(); updateDetail(); };
+    roster.appendChild(row);
+  }
+  if (dead.length) {
+    const h = document.createElement("h4");
+    h.textContent = `fallen · ${dead.length}`;
+    roster.appendChild(h);
+    for (const a of dead) {
+      const row = document.createElement("div");
+      row.className = "agent-row dead";
+      row.dataset.id = a.id;
+      row.innerHTML =
+        `<div class="dot"></div>` +
+        `<div class="name">${a.name}</div>` +
+        `<div class="rep">—</div>` +
+        `<div class="res">—</div>`;
+      row.onclick = () => { selectedAgentId = a.id; updateRoster(); updateDetail(); };
+      roster.appendChild(row);
+    }
+  }
+}
+
+function updateDetail() {
+  const panel = $("detail");
+  if (!selectedAgentId) {
+    panel.innerHTML = '<div style="color: var(--dim)">click an agent to see their profile</div>';
+    return;
+  }
+  const a = state.agents.find((x) => x.id === selectedAgentId);
+  if (!a) return;
+  const status = a.alive ? "alive" : `☠ died tick ${a.death_tick}`;
+  const traits = Object.entries(a.traits).map(([k, v]) => `${k} ${v.toFixed(2)}`).join(" · ");
+  panel.innerHTML = `
+    <div class="hline">
+      <span class="name">${a.name}</span>
+      <span class="meta">${status} · loc ${a.location || "?"} · rep ${a.reputation.toFixed(2)} · res $${a.resources.toFixed(1)}</span>
+    </div>
+    <div class="goal">goal: ${a.goal}</div>
+    <div style="color: var(--dim); font-size: 0.85em;">${traits}</div>
+    <div class="rels">
+      ${a.pacts.map((id) => `<span class="pact">♥ ${agentName(id)}</span>`).join("")}
+      ${a.friendships.filter((id) => !a.pacts.includes(id)).map((id) => `<span class="friend">~ ${agentName(id)}</span>`).join("")}
+      ${a.rivals.map((id) => `<span class="rival">! ${agentName(id)}</span>`).join("")}
+    </div>
+  `;
+}
+
+function updateSociogram() {
+  const svg = $("socio");
+  const N = state.agents.filter((a) => a.alive).length;
+  if (!N) { svg.innerHTML = ""; return; }
+  const alive = state.agents.filter((a) => a.alive);
+  const W = 380, H = 380;
+  const cx = W / 2, cy = H / 2;
+  const radius = Math.min(W, H) * 0.38;
+
+  // Persist positions so nodes don't jump every tick
+  if (!window.__socioPos) window.__socioPos = {};
+  const pos = window.__socioPos;
+
+  alive.forEach((a, i) => {
+    if (!pos[a.id]) {
+      const th = (2 * Math.PI * i) / N - Math.PI / 2;
+      pos[a.id] = { x: cx + radius * Math.cos(th), y: cy + radius * Math.sin(th) };
+    }
+  });
+  // Drop dead entries
+  for (const id of Object.keys(pos)) {
+    if (!alive.find((a) => a.id === id)) delete pos[id];
+  }
+
+  // Build edges
+  const edges = [];
+  const emit = (a, b, color, width, dash) => {
+    edges.push({ a, b, color, width, dash });
+  };
+  for (const a of alive) {
+    for (const pid of a.pacts) {
+      if (alive.find((x) => x.id === pid) && a.id < pid) {
+        emit(a.id, pid, "var(--magenta)", 3, null);
+      }
+    }
+  }
+  for (const a of alive) {
+    for (const fid of a.friendships) {
+      if (a.pacts.includes(fid)) continue;
+      if (alive.find((x) => x.id === fid) && a.id < fid) {
+        emit(a.id, fid, "var(--pink)", 1.5, null);
+      }
+    }
+  }
+  for (const a of alive) {
+    for (const rid of a.rivals) {
+      if (alive.find((x) => x.id === rid)) emit(a.id, rid, "var(--red)", 1.5, "3 3");
+    }
+  }
+
+  let svgText = "";
+  for (const e of edges) {
+    const p1 = pos[e.a], p2 = pos[e.b];
+    if (!p1 || !p2) continue;
+    svgText += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}"
+      stroke="${e.color}" stroke-width="${e.width}"
+      ${e.dash ? `stroke-dasharray="${e.dash}"` : ""} opacity="0.7"/>`;
+  }
+  for (const a of alive) {
+    const p = pos[a.id];
+    const rep = a.reputation;
+    const fill = rep >= 0.5 ? "var(--green)" : rep >= 0.2 ? "var(--gold)" : "var(--red)";
+    const r = 8 + Math.min(12, a.resources / 3);
+    svgText += `<g class="node" data-id="${a.id}">`;
+    svgText += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="#111" stroke-width="1.5"
+      ${a.id === selectedAgentId ? 'stroke="var(--accent)" stroke-width="3"' : ""}/>`;
+    svgText += `<text x="${p.x}" y="${p.y + r + 11}" text-anchor="middle">${a.name}</text>`;
+    svgText += `</g>`;
+  }
+
+  svg.innerHTML = svgText;
+  // Wire up click handlers on nodes
+  svg.querySelectorAll("g.node").forEach((g) => {
+    g.addEventListener("click", () => {
+      selectedAgentId = g.dataset.id;
+      updateRoster(); updateDetail(); updateSociogram();
+    });
+  });
+}
+
+// ── Emergence index ──
+const MAX_EI = 14;
+let emergence = { score: 0, tags: new Set() };
+
+function emergenceTick() {
+  if (!state) return;
+  const recent = state.recent_events || [];
+  const alive = state.agents.filter((a) => a.alive);
+  const tags = new Set();
+
+  for (const a of alive) {
+    if (a.pacts.length) tags.add("pact_bond");
+  }
+  const mutual = {};
+  for (const a of alive) {
+    for (const f of a.friendships) {
+      const key = [a.id, f].sort().join(":");
+      mutual[key] = (mutual[key] || 0) + 1;
+    }
+  }
+  if (Object.values(mutual).filter((v) => v >= 2).length >= 2) tags.add("alliance");
+
+  const leader = alive.reduce((m, a) => (!m || a.reputation > m.reputation ? a : m), null);
+  if (leader && leader.reputation > 0.7) tags.add("leadership");
+
+  for (const a of alive) {
+    if (a.reputation < -0.5) tags.add("ostracism");
+  }
+
+  const attackPairs = {};
+  const msgPairs = {};
+  for (const e of recent) {
+    if (e.type === "attack") {
+      const k = `${e.agent}>${e.target}`;
+      attackPairs[k] = (attackPairs[k] || 0) + 1;
+    }
+    if (e.type === "message") {
+      const k = [e.agent, e.target].sort().join("|");
+      msgPairs[k] = (msgPairs[k] || 0) + 1;
+    }
+    if (e.type === "death") tags.add("death");
+    if (e.type === "birth") tags.add("birth");
+    if (e.type === "reputation" && (e.delta || 0) < -0.2) tags.add("betrayal");
+  }
+  if (Object.values(attackPairs).some((c) => c >= 2)) tags.add("vendetta");
+  const chattyPairs = Object.entries(msgPairs).filter(([, c]) => c >= 2).map(([k]) => k.split("|"));
+  if (chattyPairs.length >= 3) tags.add("conspiracy");
+
+  // Economic detectors
+  const netFlow = {};
+  let totalVol = 0;
+  const flowPairs = {};
+  for (const e of recent) {
+    if (e.type !== "transfer") continue;
+    const amt = e.amount || 0;
+    netFlow[e.agent] = (netFlow[e.agent] || 0) - amt;
+    netFlow[e.target] = (netFlow[e.target] || 0) + amt;
+    totalVol += Math.abs(amt);
+    if (amt > 0) {
+      const k = `${e.agent}>${e.target}`;
+      flowPairs[k] = (flowPairs[k] || 0) + amt;
+    }
+  }
+  const maxGain = Math.max(...Object.values(netFlow), 0);
+  if (totalVol > 0 && maxGain > totalVol * 0.3) tags.add("wealth_concentration");
+  if (Object.values(flowPairs).some((v) => v >= 10)) tags.add("economic_dependency");
+
+  emergence.tags = tags;
+  emergence.score = tags.size;
+
+  const bar = $("eiBar");
+  bar.innerHTML = "";
+  for (let i = 0; i < MAX_EI; i++) {
+    const s = document.createElement("span");
+    if (i < emergence.score) s.classList.add("on");
+    bar.appendChild(s);
+  }
+  $("eiScore").textContent = `${emergence.score}/${MAX_EI}`;
+  const tagsEl = $("eiTags");
+  tagsEl.innerHTML = "";
+  for (const t of [...tags].sort()) {
+    const s = document.createElement("span");
+    s.textContent = t;
+    s.className = `tag-${t}`;
+    tagsEl.appendChild(s);
+  }
+}
+
+// ── totals rollup ──
+function rollupTotals(events) {
+  for (const e of events) {
+    if (e.type === "transfer") totals.transfers += 1;
+    if (e.type === "message") totals.messages += 1;
+    if (e.type === "attack") totals.attacks += 1;
+    if (e.type === "pact") totals.pacts += 1;
+  }
+  $("transfers").textContent = totals.transfers;
+  $("msgs").textContent = totals.messages;
+  $("atks").textContent = totals.attacks;
+  $("pcts").textContent = totals.pacts;
+}
+
+// ── apply new state ──
+function apply(snapshot) {
+  const firstRun = !state;
+  state = snapshot;
+
+  $("scenario").textContent = "· " + (snapshot.scenario || "");
+  $("tick").textContent = snapshot.tick;
+  $("day").textContent = snapshot.calendar.day;
+  $("month").textContent = snapshot.calendar.month;
+  $("year").textContent = snapshot.calendar.year;
+  $("pop").textContent = snapshot.population;
+  $("born").textContent = snapshot.total_births;
+  $("dead").textContent = snapshot.total_deaths;
+  $("cost").textContent = snapshot.cost.toFixed(2);
+
+  $("harshness").textContent = snapshot.harshness.toFixed(2);
+  $("harshBar").style.width = (snapshot.harshness * 100) + "%";
+  const totalRes = snapshot.agents.filter((a) => a.alive).reduce((s, a) => s + a.resources, 0);
+  $("totalRes").textContent = totalRes.toFixed(0);
+  $("resBar").style.width = Math.min(100, totalRes / Math.max(1, snapshot.population) * 5) + "%";
+
+  if (firstRun) {
+    // Initial snapshot — render existing recent events
+    updateFeed(snapshot.recent_events || []);
+  } else {
+    updateFeed(snapshot.tick_events || []);
+    updateDrama(snapshot.tick_events || []);
+    rollupTotals(snapshot.tick_events || []);
+  }
+  if (firstRun) rollupTotals(snapshot.recent_events || []);
+
+  updateRoster();
+  updateDetail();
+  updateSociogram();
+  emergenceTick();
+}
+
+// ── SSE connection ──
+function connect() {
+  const st = $("status");
+  const src = new EventSource("/events");
+  src.onopen = () => { st.textContent = "live"; st.className = "status connected"; };
+  src.onerror = () => {
+    st.textContent = "reconnecting";
+    st.className = "status disconnected";
+    src.close();
+    setTimeout(connect, 2000);
+  };
+  src.onmessage = (ev) => {
+    try { apply(JSON.parse(ev.data)); }
+    catch (e) { console.error("bad payload", e); }
+  };
+}
+
+connect();
+</script>
+</body>
+</html>

@@ -50,6 +50,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--report-model", type=str, default=None, help="Model for postmortem report (default depends on provider)")
     p.add_argument("--no-report", action="store_true", help="Skip postmortem report generation")
     p.add_argument("--open-router", action="store_true", help="Use OpenRouter with Gemini instead of Groq")
+    p.add_argument("--web", action="store_true", help="Launch a real-time browser dashboard instead of the terminal UI")
+    p.add_argument("--port", type=int, default=8765, help="Port for --web dashboard (default: 8765)")
     return p.parse_args()
 
 
@@ -184,14 +186,42 @@ async def main() -> None:
         print(f"\033[92mSimulation defaulted to scenario {args.scenario}, ticks {args.ticks}, and {n} agents from the scenario.\033[0m")
     print(f"Calculated {args.ticks} turns for {n} agents · {tick_unit} ticks · {provider['provider_label']} · estimated cost ${est_cost:.2f}")
 
-    use_dashboard = os.isatty(1) and not os.environ.get("NANOLIFE_PLAIN")
+    use_web = args.web
+    use_dashboard = not use_web and os.isatty(1) and not os.environ.get("NANOLIFE_PLAIN")
     scenario_label = args.scenario or "nanolife"
     renderer = None
+    webui_runner = None
     t0 = time.time()
     elapsed = 0.0
 
     try:
-        if use_dashboard:
+        if use_web:
+            from nanolife.webui import WebUI
+            webui = WebUI(world, scenario_label)
+            webui_runner = await webui.start(port=args.port)
+            print(f"\nOpen your browser to http://localhost:{args.port} — the dashboard streams live.")
+            print(f"Simulation will start in 3 seconds so you can connect...")
+            await asyncio.sleep(3)
+
+            def on_tick_web(result: TickResult) -> None:
+                cost = cognitive.total_cost if hasattr(cognitive, "total_cost") else 0.0
+                webui.broadcast(result, cost)
+
+            t0 = time.time()
+            # Prime the dashboard with the initial (pre-tick) state.
+            webui.broadcast(None, cost=0.0)
+            results = await engine.run(args.ticks, on_tick=on_tick_web)
+            elapsed = time.time() - t0
+            webui.broadcast(None, cost=cognitive.total_cost if hasattr(cognitive, "total_cost") else 0.0)
+            print(f"\nSimulation finished. Dashboard still serving at http://localhost:{args.port}")
+            print("(Ctrl+C to stop)")
+            # Keep the server alive so the user can explore the final state.
+            try:
+                while True:
+                    await asyncio.sleep(60)
+            except KeyboardInterrupt:
+                pass
+        elif use_dashboard:
             from nanolife.terminal import TerminalRenderer
             renderer = TerminalRenderer(world, scenario_label)
             renderer.start()
@@ -251,6 +281,11 @@ async def main() -> None:
         if renderer:
             try:
                 renderer.stop()
+            except Exception:
+                pass
+        if webui_runner:
+            try:
+                await webui_runner.cleanup()
             except Exception:
                 pass
 
