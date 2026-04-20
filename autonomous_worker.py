@@ -163,12 +163,28 @@ class AutonomousWorker:
         
         return improvements[:5]  # Top 5 priorities
     
-    def implement_change(self, improvement: str) -> bool:
-        """Attempt to implement a specific improvement (placeholder for now)."""
-        self.log(f"Would implement: {improvement}")
-        # TODO: Use LLM to generate code changes based on improvement description
-        # For now, just log the recommendation
-        return False
+    async def implement_change(self, improvement: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Attempt to implement a specific improvement using autonomous developer."""
+        self.log(f"Attempting to implement: {improvement}")
+        
+        try:
+            from autonomous_developer import develop_improvement
+            
+            result = await develop_improvement(improvement, analysis, PROJECT_ROOT)
+            
+            if result.get("success"):
+                self.log(f"✓ Implemented: {result.get('reason')}", "SUCCESS")
+                return result
+            elif result.get("skipped"):
+                self.log(f"⊘ Skipped: {result.get('reason')}", "INFO")
+                return result
+            else:
+                self.log(f"✗ Failed: {result.get('reason')}", "WARNING")
+                return result
+                
+        except Exception as e:
+            self.log(f"Error implementing change: {e}", "ERROR")
+            return {"success": False, "reason": str(e)}
     
     def git_commit_push(self, message: str) -> bool:
         """Commit and push changes to GitHub."""
@@ -206,7 +222,8 @@ class AutonomousWorker:
             return False
     
     def generate_report(self, cycle_num: int, results: List[Dict], 
-                       analysis: Dict, improvements: List[str]) -> str:
+                       analysis: Dict, improvements: List[str],
+                       implementation_results: List[Dict] = None) -> str:
         """Generate daily report summary."""
         report = f"""
 # nanolife Autonomous Work Report — Cycle {cycle_num}
@@ -226,6 +243,19 @@ class AutonomousWorker:
         report += f"\n## Identified Improvements\n"
         for imp in improvements:
             report += f"- {imp}\n"
+        
+        # Add autonomous development section
+        if implementation_results:
+            report += f"\n## Autonomous Development\n"
+            for impl in implementation_results:
+                if impl.get("success"):
+                    report += f"✓ IMPLEMENTED: {impl.get('reason', 'unknown')}\n"
+                    report += f"  - File: {impl.get('file_path', 'N/A')}\n"
+                    report += f"  - Type: {impl.get('change_type', 'N/A')}\n"
+                elif impl.get("skipped"):
+                    report += f"⊘ SKIPPED: {impl.get('reason', 'unknown')}\n"
+                else:
+                    report += f"✗ FAILED: {impl.get('reason', 'unknown')}\n"
         
         if analysis.get("failures"):
             report += f"\n## Failures to Investigate\n"
@@ -284,8 +314,36 @@ class AutonomousWorker:
         # 3. Identify improvements
         improvements = self.identify_improvements(analysis)
         
-        # 4. Generate report
-        report = self.generate_report(self.cycle_count, results, analysis, improvements)
+        # 4. AUTONOMOUS DEVELOPMENT: Try to implement top improvement
+        implementation_results = []
+        if improvements:
+            top_improvement = improvements[0]  # Focus on highest priority
+            self.log(f"Attempting autonomous implementation of: {top_improvement}")
+            
+            impl_result = await self.implement_change(top_improvement, analysis)
+            implementation_results.append(impl_result)
+            
+            if impl_result.get("success"):
+                # Test the change
+                self.log("Testing implemented change...")
+                test_result = self.run_simulation(
+                    scenario="colony",  # Quick test
+                    agents=5,
+                    ticks=10,
+                    use_openrouter=False
+                )
+                
+                if test_result.get("success"):
+                    self.log("✓ Change tested successfully", "SUCCESS")
+                    # Commit the code change
+                    self.git_commit_push(f"[autonomous-dev] {impl_result.get('reason', 'improvement')}")
+                else:
+                    self.log("✗ Test failed, rolling back", "WARNING")
+                    subprocess.run(["git", "checkout", "HEAD", impl_result.get("file_path", ".")], 
+                                   cwd=PROJECT_ROOT)
+        
+        # 5. Generate report (including implementation results)
+        report = self.generate_report(self.cycle_count, results, analysis, improvements, implementation_results)
         
         # Save report
         report_file = LOGS_DIR / f"report_cycle{self.cycle_count}.md"
@@ -295,10 +353,10 @@ class AutonomousWorker:
         self.log(f"Report saved to {report_file}")
         print("\n" + report)
         
-        # 5. Send email report (daily summary)
+        # 6. Send email report (daily summary)
         self.send_email_report(report)
         
-        # 6. Commit results (not code changes yet, just logs)
+        # 7. Commit results logs
         self.git_commit_push(f"Cycle {self.cycle_count}: {len(results)} experiments, {analysis['successful_runs']} successful")
         
         self.log(f"=== Work cycle {self.cycle_count} complete ===\n")
