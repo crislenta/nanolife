@@ -93,13 +93,15 @@ Respond in this EXACT JSON format (no markdown, no explanation). Put decisions F
   "reputation_deltas": {{"agent_name": delta}},
   "new_friend": "agent_name or null",
   "new_location": "location_name or null",
-  "thought": "one short sentence of private reasoning (<= 25 words)"
+  "thought": "one short sentence of private reasoning (<= 25 words)",
+  "delta": [dx, dy]
 }}
 
 reputation_deltas: dict of agent names -> float delta (-0.3 to +0.3). Use positive values to praise allies (helping them survive) and negative to criticize enemies. You CANNOT include your own name.
 new_friend: name of ONE agent you want to befriend, or null.
 new_location: a location to travel to (existing or new), or null to stay.
 action: a specific concrete act (e.g. "forage berries by the south ridge", "trade 2 resources to Ada for an alliance", "scheme against Bjorn with Cyra"). Reject generic verbs like "work".
+delta: if a LOCAL VIEW is shown above, step one tile by setting [dx, dy] with each component in {{-1, 0, 1}}. +x is right, +y is down, [0,0] means stay. Blocked or off-map tiles abort the step. Omit or set [0,0] when not on a grid.
 
 Your goal is: {agent.goal}
 You have {agent.resources:.1f} resources. You lose resources every tick. At 0 you die.

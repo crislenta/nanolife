@@ -116,6 +116,11 @@ class WorldState:
     base_gain: float = 4.0
     reputation_decay: float = 0.03
     starting_resources: float = 15.0
+    # Optional grid world. When set, the engine enables spatial behavior:
+    # agents with a (x, y) position may propose 1-tile moves via
+    # decision["delta"] = (dx, dy) and see a local ASCII view each tick.
+    # None = legacy behavior (no grid, no movement, no local_view).
+    world_map: Any = None
 
     @classmethod
     def create(

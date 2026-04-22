@@ -87,7 +87,7 @@ class Engine:
         alive = self.world.alive_agents
         result = TickResult(tick=tick_num, population=len(alive))
 
-        world_ctx = (
+        base_ctx = (
             f"Tick {tick_num} | {self.world.clock.label()} | "
             f"Population: {len(alive)} | "
             f"Harshness: {self.world.harshness} | "
@@ -95,20 +95,35 @@ class Engine:
         )
 
         # --- All agents observe and act in PARALLEL ---
-        agent_contexts = []
+        agent_contexts: list[tuple[Agent, list[Event], str]] = []
+        wmap = self.world.world_map
         for agent in alive:
             visible = self.world.event_log.for_agent(agent.id)
             recent = visible[-self.world.memory_depth:]
-            agent_contexts.append((agent, recent))
+            ctx = base_ctx
+            if wmap is not None and agent.position is not None:
+                patch = wmap.local_view(agent.position, radius=3, agents=alive)
+                ctx = (
+                    f"{base_ctx} | Position: {agent.position}\n"
+                    f"LOCAL VIEW (radius 3, @ = you):\n{patch}"
+                )
+            agent_contexts.append((agent, recent, ctx))
 
         decisions = await asyncio.gather(*(
-            self.cognitive.decide(agent, recent, world_ctx, alive)
-            for agent, recent in agent_contexts
+            self.cognitive.decide(agent, recent, ctx, alive)
+            for agent, recent, ctx in agent_contexts
         ))
 
-        for (agent, _), decision in zip(agent_contexts, decisions):
+        for (agent, _, _), decision in zip(agent_contexts, decisions):
             # Restrict witnesses to agents in the same location
             local_witnesses = [a.id for a in alive if a.location == agent.location]
+
+            # Optional grid step (cognitive pre-clamps delta to ints in [-1,1]).
+            step = self._try_step(agent, decision.get("delta"), wmap, alive, tick_num, local_witnesses)
+            if step is not None:
+                self.world.event_log.append(step)
+                result.events.append(step)
+                agent.memory.append(step)
 
             new_location = decision.get("new_location")
             if new_location and new_location != agent.location:
@@ -291,6 +306,29 @@ class Engine:
 
         result.population = len(self.world.alive_agents)
         return result
+
+    def _try_step(self, agent: Agent, delta: Any, wmap: Any, alive: list[Agent],
+                  tick: int, witnesses: list[str]) -> Event | None:
+        """Apply a 1-tile move if valid, returning a step event or None."""
+        if wmap is None or agent.position is None or not isinstance(delta, (list, tuple)) or len(delta) != 2:
+            return None
+        dx, dy = delta
+        if (dx, dy) == (0, 0):
+            return None
+        nx, ny = agent.position[0] + dx, agent.position[1] + dy
+        if not wmap.passable(nx, ny):
+            return None
+        if any(a.alive and a.id != agent.id and a.position == (nx, ny) for a in alive):
+            return None
+        old = agent.position
+        agent.position = (nx, ny)
+        return {
+            "tick": tick,
+            "type": "step",
+            "agent": agent.id,
+            "content": f"{agent.name} stepped {old} -> {agent.position}",
+            "witnesses": witnesses,
+        }
 
     def _check_death(self, agent: Agent, tick: int) -> str | None:
         if agent.age(tick) >= agent.lifespan:

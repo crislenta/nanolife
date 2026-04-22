@@ -198,9 +198,11 @@ async def main() -> None:
     t0 = time.time()
     elapsed = 0.0
 
-    # Optional minimal renderer: parse world map from scenario.
+    # Parse the scenario's world map (if any). Always attach it to the
+    # WorldState so the engine can enable spatial behavior (local_view +
+    # grid movement) regardless of which renderer the user picks.
     render_worldmap = None
-    if args.render and scenario and scenario.world:
+    if scenario and scenario.world:
         from nanolife.worldmap import Tile, WorldMap
         wdef = scenario.world
         raw_map = wdef.get("map", "")
@@ -212,6 +214,7 @@ async def main() -> None:
             for g, v in legend_def.items()
         }
         render_worldmap = WorldMap.from_ascii(raw_map, legend)
+        world.world_map = render_worldmap
 
     try:
         if args.render:

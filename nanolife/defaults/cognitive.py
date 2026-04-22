@@ -213,7 +213,18 @@ class LLMCognitive(CognitiveFunction):
         raw_loc = data.get("new_location")
         new_location = raw_loc if isinstance(raw_loc, str) and raw_loc.lower() not in ("null", "none", "") else None
 
-        return {
+        # Optional grid step. Pass through only if the LLM produced a
+        # 2-element numeric pair; the engine does all bounds/passability checks.
+        delta: list[int] | None = None
+        raw_delta = data.get("delta")
+        if isinstance(raw_delta, (list, tuple)) and len(raw_delta) == 2:
+            try:
+                dx, dy = int(raw_delta[0]), int(raw_delta[1])
+                delta = [max(-1, min(1, dx)), max(-1, min(1, dy))]
+            except (TypeError, ValueError):
+                delta = None
+
+        out: dict[str, Any] = {
             "thought": str(data.get("thought", "..."))[:300],
             "mode": mode,
             "action": str(data.get("action", "work"))[:300],
@@ -221,6 +232,9 @@ class LLMCognitive(CognitiveFunction):
             "new_friend": new_friend,
             "new_location": new_location,
         }
+        if delta is not None:
+            out["delta"] = delta
+        return out
 
     _KEY_RE = re.compile(r'"(mode|action|thought|new_friend|new_location)"\s*:\s*"((?:[^"\\]|\\.)*)"')
 
