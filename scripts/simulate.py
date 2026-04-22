@@ -50,6 +50,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--report-model", type=str, default=None, help="Model for postmortem report (default depends on provider)")
     p.add_argument("--no-report", action="store_true", help="Skip postmortem report generation")
     p.add_argument("--open-router", action="store_true", help="Use OpenRouter with Gemini instead of Groq")
+    p.add_argument("--render", action="store_true", help="Use the minimal terminal renderer (map + roster + log) instead of the dashboard")
     return p.parse_args()
 
 
@@ -140,6 +141,13 @@ async def main() -> None:
                 goal=agent_def.get("goal", "survive and thrive"),
                 location=agent_def.get("location"),
             )
+            # Apply optional render-only position after spawn (engine ignores it).
+            pos = agent_def.get("position")
+            if pos and len(pos) == 2:
+                for a in world.agents:
+                    if a.name == agent_def["name"] and a.position is None:
+                        a.position = (int(pos[0]), int(pos[1]))
+                        break
         for text in scenario.opening_events:
             world.event_log.append({
                 "tick": 0,
@@ -184,14 +192,53 @@ async def main() -> None:
         print(f"\033[92mSimulation defaulted to scenario {args.scenario}, ticks {args.ticks}, and {n} agents from the scenario.\033[0m")
     print(f"Calculated {args.ticks} turns for {n} agents · {tick_unit} ticks · {provider['provider_label']} · estimated cost ${est_cost:.2f}")
 
-    use_dashboard = os.isatty(1) and not os.environ.get("NANOLIFE_PLAIN")
+    use_dashboard = os.isatty(1) and not os.environ.get("NANOLIFE_PLAIN") and not args.render
     scenario_label = args.scenario or "nanolife"
     renderer = None
     t0 = time.time()
     elapsed = 0.0
 
+    # Optional minimal renderer: parse world map from scenario.
+    render_worldmap = None
+    if args.render and scenario and scenario.world:
+        from nanolife.worldmap import Tile, WorldMap
+        wdef = scenario.world
+        raw_map = wdef.get("map", "")
+        if isinstance(raw_map, list):
+            raw_map = "\n".join(raw_map)
+        legend_def = wdef.get("legend", {})
+        legend = {
+            g: Tile(glyph=g, terrain=v.get("terrain", "unknown"), color=v.get("color"))
+            for g, v in legend_def.items()
+        }
+        render_worldmap = WorldMap.from_ascii(raw_map, legend)
+
     try:
-        if use_dashboard:
+        if args.render:
+            from nanolife.render import render as render_frame
+            rich_console = None
+            event_lines: list[str] = []
+
+            def on_tick_render(result: TickResult) -> None:
+                nonlocal rich_console
+                for e in result.events:
+                    t = e.get("type", "?")
+                    if t == "thought":
+                        continue
+                    who = e.get("agent", "world")
+                    content = e.get("content", "")
+                    event_lines.append(f"t{result.tick:>4} [{t}] {who}: {content}")
+                frame = render_frame(render_worldmap, list(world.agents), event_lines, result.tick)
+                if rich_console is None:
+                    from rich.console import Console as _C
+                    rich_console = _C()
+                rich_console.clear()
+                print(frame, end="")
+
+            t0 = time.time()
+            results = await engine.run(args.ticks, on_tick=on_tick_render)
+            elapsed = time.time() - t0
+        elif use_dashboard:
             from nanolife.terminal import TerminalRenderer
             renderer = TerminalRenderer(world, scenario_label)
             renderer.start()

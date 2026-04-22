@@ -1,0 +1,41 @@
+{
+  "name": "village",
+  "description": "A small hamlet on the edge of the woods. Four settlers and a traveling merchant. Infra-only demo for the terminal renderer.",
+  "theme": "low-fantasy pastoral",
+  "harshness": 0.35,
+  "tick_unit": "4h",
+  "locations": ["Village Square", "The Woods", "The Pond", "The Hills"],
+  "opening_events": [
+    "Smoke rises from four chimneys. A traveler is seen on the road.",
+    "The well in the square is half-empty; the harvest is close."
+  ],
+  "world": {
+    "map": [
+      "^^^^..........tt....",
+      "^^^..........tttt...",
+      "^^...........ttt....",
+      "...........ww.......",
+      "....##.....www......",
+      "....##..............",
+      "........##..........",
+      "........##...ttt....",
+      "..........tt.tt.....",
+      "....................."
+    ],
+    "legend": {
+      ".": { "terrain": "grass",    "color": "green" },
+      "^": { "terrain": "mountain", "color": "bright_black" },
+      "t": { "terrain": "tree",     "color": "bright_green" },
+      "w": { "terrain": "water",    "color": "blue" },
+      "#": { "terrain": "wall",     "color": "yellow" },
+      " ": { "terrain": "empty",    "color": "white" }
+    }
+  },
+  "agents": [
+    { "name": "Mara",   "traits": { "strength": 0.5, "charisma": 0.6, "intelligence": 0.7 }, "goal": "keep the village fed through winter", "location": "Village Square", "position": [5, 4] },
+    { "name": "Bren",   "traits": { "strength": 0.8, "charisma": 0.4, "intelligence": 0.5 }, "goal": "hunt the woods and protect the hamlet",   "location": "The Woods",       "position": [15, 7] },
+    { "name": "Ilsa",   "traits": { "strength": 0.3, "charisma": 0.8, "intelligence": 0.8 }, "goal": "record what happens and who owes whom",  "location": "Village Square", "position": [9, 5] },
+    { "name": "Odo",    "traits": { "strength": 0.6, "charisma": 0.5, "intelligence": 0.6 }, "goal": "draw water and tend the pond",           "location": "The Pond",        "position": [12, 3] },
+    { "name": "Quill",  "traits": { "strength": 0.4, "charisma": 0.9, "intelligence": 0.7 }, "goal": "sell wares and gather gossip",           "location": "Village Square", "position": [8, 7] }
+  ]
+}

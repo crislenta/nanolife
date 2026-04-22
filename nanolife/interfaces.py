@@ -82,3 +82,7 @@ class Scenario:
     base_gain: float = 4.0
     reputation_decay: float = 0.03
     starting_resources: float = 15.0
+    # Optional grid world for the terminal renderer. Shape:
+    # {"map": "<multiline ascii>", "legend": {"g": {"terrain": "grass", "color": "green"}}}
+    # Absent = legacy (no map, render roster+log only).
+    world: dict[str, Any] | None = None
