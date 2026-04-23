@@ -11,7 +11,9 @@
 
 ---
 
-The best Multi-Agent Simulator $1 can buy: minimalist implementation of evolutionary biology and social dynamics with LLMs.
+> **Mission.** nanolife is a minimalist real-time implementation of evolutionary biology and social dynamics with LLMs, where agents have full free-will and mimic the being's instinct to live and to act.
+
+The best Multi-Agent Simulator $1 can buy. Free-will is the design constraint: agents are never given a menu of allowed actions, never scripted, never reward-shaped. On every tick they observe, feel their needs, and choose what to do in natural language. Evolution, economy, and society are what emerges when many such wills run in parallel under scarcity.
 
 nanolife is the smallest multi-agent LLM-based Artificial Life harness — a modular & paralel arhitecture with implementations of Darwinian selection, Maslow's hierarchy of needs, Malthusian economics, Lamarckian inheritance. ~350 lines of code in the main simulation engine `engine.py`. You can theoretically run this simulation ad infinitum. A simulation run costs from $0.1 (eg. gpt-oss-120b) to $5 (eg. Gemini-2.5-flash) and more (eg. Calude-Opus-4.6). The heartbeat is a configurable parameter (eg. '4h', 'day', etc) representing the time passage. No vector databases, no embeddings, just a minimalist implementation with 7 rules: scarcity, harshness, reputation, heredity, compression, local observation, event log.
 
