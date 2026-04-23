@@ -86,3 +86,6 @@ class Scenario:
     # {"map": "<multiline ascii>", "legend": {"g": {"terrain": "grass", "color": "green"}}}
     # Absent = legacy (no map, render roster+log only).
     world: dict[str, Any] | None = None
+    # Optional resource-site gating. {resource_name: [terrain_tag,...]}.
+    # Empty = no gating (legacy behavior).
+    resource_sites: dict[str, list[str]] = field(default_factory=dict)

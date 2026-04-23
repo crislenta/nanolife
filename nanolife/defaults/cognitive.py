@@ -83,6 +83,7 @@ class LLMCognitive(CognitiveFunction):
             ],
             temperature=0.9,
             max_tokens=500,
+            reasoning_effort="low",
         )
 
         if not resp:
@@ -195,9 +196,18 @@ class LLMCognitive(CognitiveFunction):
 
         name_to_id = {a.name.lower(): a.id for a in agents}
 
-        mode = str(data.get("mode", "productive")).lower().strip()
-        if mode not in ("productive", "social", "rest"):
-            mode = "productive"
+        # Spatial schema promotes `walk` to a first-class action verb and uses
+        # `action` for the verb + `description` for the free-form text. Legacy
+        # schema keeps `mode` (productive/social/rest) + free-form `action`.
+        raw_action = str(data.get("action", "")).lower().strip()
+        if raw_action == "walk":
+            mode = "walk"
+            action_text = str(data.get("description", data.get("action", "walk")))[:300]
+        else:
+            mode = str(data.get("mode", raw_action or "productive")).lower().strip()
+            if mode not in ("productive", "social", "rest"):
+                mode = "productive"
+            action_text = str(data.get("description", data.get("action", "work")))[:300]
 
         rep_deltas: dict[str, float] = {}
         for name, delta in data.get("reputation_deltas", {}).items():
@@ -213,14 +223,38 @@ class LLMCognitive(CognitiveFunction):
         raw_loc = data.get("new_location")
         new_location = raw_loc if isinstance(raw_loc, str) and raw_loc.lower() not in ("null", "none", "") else None
 
-        return {
+        # Grid step. Only meaningful when mode=="walk"; the engine ignores
+        # delta for other modes. Clamp components to {-1, 0, 1}.
+        delta: list[int] | None = None
+        parse_error: str | None = None
+        raw_delta = data.get("delta")
+        if isinstance(raw_delta, (list, tuple)) and len(raw_delta) == 2:
+            try:
+                dx, dy = int(raw_delta[0]), int(raw_delta[1])
+                delta = [max(-1, min(1, dx)), max(-1, min(1, dy))]
+            except (TypeError, ValueError):
+                delta = None
+
+        # walk REQUIRES a non-zero delta. Fall back to productive with a
+        # parse-error marker so the engine can log it.
+        if mode == "walk" and (delta is None or delta == [0, 0]):
+            parse_error = f"walk chosen but delta invalid: {raw_delta!r}"
+            mode = "productive"
+            delta = None
+
+        out: dict[str, Any] = {
             "thought": str(data.get("thought", "..."))[:300],
             "mode": mode,
-            "action": str(data.get("action", "work"))[:300],
+            "action": action_text,
             "reputation_deltas": rep_deltas,
             "new_friend": new_friend,
             "new_location": new_location,
         }
+        if delta is not None:
+            out["delta"] = delta
+        if parse_error:
+            out["parse_error"] = parse_error
+        return out
 
     _KEY_RE = re.compile(r'"(mode|action|thought|new_friend|new_location)"\s*:\s*"((?:[^"\\]|\\.)*)"')
 
