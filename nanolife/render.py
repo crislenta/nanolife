@@ -1,8 +1,21 @@
-"""Caves-of-Qud-style terminal renderer.
+"""Caves-of-Qud / Teleport-style terminal renderer.
 
 Pure function: takes read-only state, returns a rendered string frame.
 The engine never calls this; it's driven by the simulate script when
 ``--render`` is passed. Works with or without a WorldMap.
+
+Layout (map-centric, Teleport aesthetic):
+
+    +-----------------------------------------------------------+
+    |  header: title . tick . pop . cost                        |
+    +-----------+-----------------------------------+-----------+
+    |           |                                   |           |
+    |  roster   |               MAP                 |  status   |
+    |  (left)   |           (center, big)           |  (right)  |
+    |           |                                   |           |
+    +-----------+-----------------------------------+-----------+
+    |  event log (wide, bottom)                                 |
+    +-----------------------------------------------------------+
 """
 from __future__ import annotations
 
@@ -18,8 +31,15 @@ from .common import Agent
 from .worldmap import WorldMap
 
 
+# Palette — sparse, monochrome-leaning, amber/cyan accents.
+_BORDER = "grey39"
+_BORDER_ACCENT = "cyan"
+_TITLE = "bold cyan"
+_AGENT_STYLE = "bold yellow"
+
+
 def _map_panel(world: WorldMap, agents: list[Agent]) -> Panel:
-    # Agents overlay tiles; later agents in the list win on collision.
+    """Render the map with agent glyphs overlaid on tiles."""
     overlay: dict[tuple[int, int], tuple[str, str]] = {}
     for a in agents:
         if a.position is None or not a.alive:
@@ -27,7 +47,7 @@ def _map_panel(world: WorldMap, agents: list[Agent]) -> Panel:
         x, y = a.position
         if 0 <= x < world.width and 0 <= y < world.height:
             glyph = a.name[0].upper() if a.name else "?"
-            overlay[(x, y)] = (glyph, "bold yellow")
+            overlay[(x, y)] = (glyph, _AGENT_STYLE)
 
     text = Text()
     for y in range(world.height):
@@ -40,31 +60,128 @@ def _map_panel(world: WorldMap, agents: list[Agent]) -> Panel:
                 text.append(tile.glyph, style=tile.color or "white")
         if y < world.height - 1:
             text.append("\n")
-    return Panel(text, title="map", border_style="dim")
+
+    return Panel(
+        text,
+        title="[bold]world[/bold]",
+        border_style=_BORDER_ACCENT,
+        padding=(0, 1),
+    )
+
+
+def _header_panel(tick: int, agents: list[Agent], cost: float | None) -> Panel:
+    """Top status strip: title . tick . alive count . accumulated cost."""
+    alive = sum(1 for a in agents if a.alive)
+    total = len(agents)
+    bits = [
+        Text("nanolife", style=_TITLE),
+        Text(f"tick {tick:04d}", style="bold white"),
+        Text(f"pop {alive}/{total}", style="white"),
+    ]
+    if cost is not None:
+        bits.append(Text(f"${cost:.3f}", style="green"))
+    line = Text("   .   ").join(bits)
+    return Panel(line, border_style=_BORDER_ACCENT, padding=(0, 1))
 
 
 def _roster_panel(agents: list[Agent]) -> Panel:
-    table = Table.grid(padding=(0, 1))
-    table.add_column(style="bold", no_wrap=True)
-    table.add_column(style="dim")
+    """Left side: who's alive, reputation, resources, short thought."""
+    table = Table.grid(padding=(0, 1), expand=True)
+    table.add_column(style=_AGENT_STYLE, no_wrap=True, width=3)
+    table.add_column(style="white", no_wrap=True)
+    table.add_column(style="dim", no_wrap=False)
+
     for a in agents:
         if not a.alive:
             continue
+        glyph = a.name[0].upper() if a.name else "?"
         rep = getattr(a, "reputation", None)
         res = getattr(a, "resources", None)
-        bits = []
+        stats: list[str] = []
         if rep is not None:
-            bits.append(f"rep {rep:+.1f}")
+            stats.append(f"rep {rep:+.1f}")
         if res is not None:
-            bits.append(f"res {res:.0f}")
-        table.add_row(a.name, " ".join(bits))
-    return Panel(table, title="agents", border_style="dim")
+            stats.append(f"res {res:.0f}")
+        stat_line = " ".join(stats) if stats else ""
+        thought = getattr(a, "last_thought", "") or ""
+        # Trim noisy thoughts — the log shows full lines.
+        if len(thought) > 40:
+            thought = thought[:37] + "..."
+        table.add_row(glyph, a.name, stat_line)
+        if thought:
+            table.add_row("", "", Text(thought, style="italic dim"))
+
+    dead = [a for a in agents if not a.alive]
+    if dead:
+        table.add_row("", "", "")
+        table.add_row(
+            Text("x", style="red"),
+            Text(f"dead ({len(dead)})", style="red"),
+            Text(", ".join(a.name for a in dead), style="dim red"),
+        )
+
+    return Panel(
+        table,
+        title="[bold]agents[/bold]",
+        border_style=_BORDER,
+        padding=(1, 1),
+    )
 
 
-def _log_panel(event_log: list[str]) -> Panel:
-    tail = event_log[-15:]
-    text = Text("\n".join(tail) if tail else "(no events)", style="white")
-    return Panel(text, title="event log", border_style="dim")
+def _status_panel(agents: list[Agent], tick: int) -> Panel:
+    """Right side: world vitals . recent action tallies."""
+    alive = [a for a in agents if a.alive]
+    action_counts: dict[str, int] = {}
+    for a in alive:
+        act = getattr(a, "last_action", None)
+        if act:
+            action_counts[act] = action_counts.get(act, 0) + 1
+
+    table = Table.grid(padding=(0, 1), expand=True)
+    table.add_column(style="dim", no_wrap=True)
+    table.add_column(style="white", no_wrap=True, justify="right")
+
+    table.add_row("tick", str(tick))
+    table.add_row("alive", str(len(alive)))
+    if alive:
+        avg_rep = sum(getattr(a, "reputation", 0.0) or 0.0 for a in alive) / len(alive)
+        avg_res = sum(getattr(a, "resources", 0.0) or 0.0 for a in alive) / len(alive)
+        table.add_row("avg rep", f"{avg_rep:+.2f}")
+        table.add_row("avg res", f"{avg_res:.1f}")
+    if action_counts:
+        table.add_row("", "")
+        table.add_row(Text("this tick", style="bold white"), "")
+        for act, n in sorted(action_counts.items(), key=lambda kv: -kv[1]):
+            table.add_row(act, str(n))
+
+    return Panel(
+        table,
+        title="[bold]status[/bold]",
+        border_style=_BORDER,
+        padding=(1, 1),
+    )
+
+
+def _log_panel(event_log: list[str], lines: int = 8) -> Panel:
+    """Bottom: wide event feed. Newest line last (terminal-native)."""
+    tail = event_log[-lines:]
+    if not tail:
+        body = Text("(no events yet)", style="dim italic")
+    else:
+        body = Text()
+        for i, line in enumerate(tail):
+            if i > 0:
+                body.append("\n")
+            # Subtle fade for older lines.
+            age = len(tail) - 1 - i
+            style = "white" if age == 0 else ("grey70" if age < 3 else "grey50")
+            body.append(line, style=style)
+    return Panel(
+        body,
+        title="[bold]event log[/bold]",
+        border_style=_BORDER,
+        padding=(0, 1),
+    )
 
 
 def render(
@@ -72,30 +189,42 @@ def render(
     agents: list[Agent],
     event_log: list[str],
     tick: int,
-    width: int = 120,
-    height: int = 32,
+    width: int = 140,
+    height: int = 40,
+    cost: float | None = None,
 ) -> str:
-    """Render one frame; return a styled string (ANSI via rich export)."""
+    """Render one frame; return ANSI-styled string.
+
+    The layout puts the map dead center with panels framing it. When
+    there's no world (legacy scenarios), we fall back to a roster+log
+    split with no map.
+    """
     console = Console(record=True, width=width, height=height, force_terminal=True)
     layout = Layout()
+
+    # Three rows: header . body . log
     layout.split_column(
-        Layout(Panel(Text(f"nanolife — tick {tick}", style="bold cyan"), border_style="cyan"),
-               name="header", size=3),
+        Layout(_header_panel(tick, agents, cost), name="header", size=3),
         Layout(name="body"),
+        Layout(_log_panel(event_log), name="log", size=10),
     )
+
     if world is not None:
+        # Map dominates the center. Cap side panels so the map gets the
+        # visual weight, Teleport-style. For small maps the panel size is
+        # driven by available space; for large maps the panels stay thin.
+        side_w = min(32, max(22, (width - (world.width + 4)) // 2))
         layout["body"].split_row(
-            Layout(_map_panel(world, agents), name="map", ratio=2),
-            Layout(name="side", ratio=1),
-        )
-        layout["body"]["side"].split_column(
-            Layout(_roster_panel(agents), name="roster"),
-            Layout(_log_panel(event_log), name="log"),
+            Layout(_roster_panel(agents), name="roster", size=side_w),
+            Layout(_map_panel(world, agents), name="map"),
+            Layout(_status_panel(agents, tick), name="status", size=side_w),
         )
     else:
+        # No map — give roster/status equal billing, no center panel.
         layout["body"].split_row(
             Layout(_roster_panel(agents), name="roster", ratio=1),
-            Layout(_log_panel(event_log), name="log", ratio=2),
+            Layout(_status_panel(agents, tick), name="status", ratio=1),
         )
+
     console.print(layout)
     return console.export_text(styles=True)
