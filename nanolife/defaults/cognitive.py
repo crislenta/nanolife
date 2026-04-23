@@ -8,7 +8,10 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import sys
+import time
+from pathlib import Path
 from typing import Any
 
 from openai import AsyncOpenAI
@@ -79,16 +82,19 @@ class LLMCognitive(CognitiveFunction):
                 {"role": "user", "content": user},
             ],
             temperature=0.9,
-            max_tokens=300,
+            max_tokens=500,
         )
 
         if not resp:
+            # API failure — do NOT force "work". Rest so the fallback does not
+            # collapse free-will into a monoculture when many agents fail at once.
             return {
                 "thought": "My mind is clouded.",
-                "mode": "productive",
-                "action": "work",
+                "mode": "rest",
+                "action": "pause and gather my thoughts",
                 "reputation_deltas": {},
                 "new_friend": None,
+                "new_location": None,
             }
 
         self.llm_calls += 1
@@ -100,7 +106,7 @@ class LLMCognitive(CognitiveFunction):
             self._update_cost(usage.prompt_tokens, usage.completion_tokens)
 
         raw = resp.choices[0].message.content or "{}"
-        return self._parse_response(raw, agents)
+        return self._parse_response(raw, agents, agent_name=agent.name)
 
     async def reflect(self, agent: Agent, todays_events: list[Event]) -> str:
         # Smart fallback: generate a basic reflection based on the day's events
@@ -162,7 +168,8 @@ class LLMCognitive(CognitiveFunction):
         name = parts[0] if parts else ""
         return name or f"{parent_a.name[:2]}{parent_b.name[-3:]}"
 
-    def _parse_response(self, raw: str, agents: list[Agent]) -> dict[str, Any]:
+    def _parse_response(self, raw: str, agents: list[Agent], agent_name: str = "?") -> dict[str, Any]:
+        original = raw
         raw = raw.strip()
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0]
@@ -170,13 +177,21 @@ class LLMCognitive(CognitiveFunction):
         try:
             data = json.loads(raw)
         except json.JSONDecodeError:
-            return {
-                "thought": raw[:200],
-                "mode": "productive",
-                "action": "work",
-                "reputation_deltas": {},
-                "new_friend": None,
-            }
+            self._log_parse_failure(agent_name, original)
+            salvaged = self._salvage_partial_json(raw)
+            if salvaged is not None:
+                data = salvaged
+            else:
+                # Last resort: keep thought, but do NOT force "work" — use "pause"
+                # so the fallback itself does not collapse free-will into a monoculture.
+                return {
+                    "thought": raw[:200],
+                    "mode": "rest",
+                    "action": "pause and gather my thoughts",
+                    "reputation_deltas": {},
+                    "new_friend": None,
+                    "new_location": None,
+                }
 
         name_to_id = {a.name.lower(): a.id for a in agents}
 
@@ -206,6 +221,44 @@ class LLMCognitive(CognitiveFunction):
             "new_friend": new_friend,
             "new_location": new_location,
         }
+
+    _KEY_RE = re.compile(r'"(mode|action|thought|new_friend|new_location)"\s*:\s*"((?:[^"\\]|\\.)*)"')
+
+    def _salvage_partial_json(self, raw: str) -> dict[str, Any] | None:
+        """Extract top-level string fields from truncated JSON.
+
+        When the model gets cut off mid-response (the #1 cause of parse
+        failure here), the prefix is still well-formed JSON up to the
+        truncation point. We can recover whatever complete "key": "value"
+        pairs exist and surface them to the engine, so free-will survives
+        even a cut-off response.
+        """
+        found: dict[str, Any] = {}
+        for m in self._KEY_RE.finditer(raw):
+            key, val = m.group(1), m.group(2)
+            if key not in found:
+                found[key] = val
+        # Must have at least mode or action — otherwise nothing to salvage.
+        if "mode" not in found and "action" not in found:
+            return None
+        return found
+
+    def _log_parse_failure(self, agent_name: str, raw: str) -> None:
+        """Append a parse-failure sample to NANOLIFE_DEBUG_COGNITIVE if set.
+
+        The env var holds an absolute path. Appended lines are JSONL with
+        {ts, agent, raw}. Silent no-op when unset, so production runs
+        carry zero overhead beyond an env lookup.
+        """
+        path = os.environ.get("NANOLIFE_DEBUG_COGNITIVE")
+        if not path:
+            return
+        try:
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "a", encoding="utf-8") as f:
+                f.write(json.dumps({"ts": time.time(), "agent": agent_name, "raw": raw}) + "\n")
+        except Exception:
+            pass
 
     def _update_cost(self, prompt_tokens: int, completion_tokens: int) -> None:
         # Per-million token pricing (input, output) — verified April 2026
