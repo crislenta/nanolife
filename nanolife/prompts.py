@@ -73,6 +73,59 @@ def turn_prompt(agent: Agent, visible_events: list[Event], agents: list[Agent]) 
         people.append(f"  - {a.name} (rep: {a.reputation:.2f}, {rel})")
     people_block = "\n".join(people) if people else "  (no one around)"
 
+    # Spatial mode: when the agent has a grid position, the engine embeds a
+    # LOCAL VIEW in world_context and `walk` becomes a first-class action with
+    # a REQUIRED `delta`. Otherwise the prompt stays byte-identical to legacy.
+    spatial = agent.position is not None
+
+    if spatial:
+        action_menu = (
+            '- "walk": move one tile toward a resource, a tree, water, or another agent (REQUIRES `delta`)\n'
+            '- "productive": work, gather, forage, craft — earns resources (yield depends on YOUR reputation)\n'
+            '- "social": talk, negotiate, praise, scheme — interact with others\n'
+            '- "rest": do nothing — no resource gain, still costs upkeep'
+        )
+        schema_json = (
+            '{\n  "action": "walk|productive|social|rest",\n'
+            '  "delta": [dx, dy],\n'
+            '  "thought": "ONE short sentence",\n'
+            '  "description": "ONE short sentence — what you do, name people",\n'
+            '  "reputation_deltas": {"agent_name": delta},\n'
+            '  "new_friend": "agent_name or null",\n'
+            '  "new_location": "location_name or null"\n}'
+        )
+        spatial_rules = (
+            "WALKING IS OFTEN NECESSARY. Read the LOCAL VIEW above: `@`=you, letters=other agents, "
+            "`w`=water, `t`=trees, `^`=mountains (blocked), `#`=walls (blocked), `.`=grass. "
+            "Drawing water REQUIRES standing on or orthogonally next to a `w` tile — if you're not "
+            "next to one, choose action=\"walk\" with a delta that steps toward the nearest `w`. "
+            "Same logic for reaching other agents or trees: walk to them.\n"
+            "delta: REQUIRED for walk. Each component in {-1, 0, 1}, not both zero. +x=right, +y=down. "
+            "For non-walk actions set delta=[0,0] (ignored)."
+        )
+        return f"""YOUR RECENT MEMORY:
+{memory_block}
+
+PEOPLE PRESENT IN {agent.location}:
+{people_block}
+
+Choose an ACTION for this turn:
+{action_menu}
+
+Respond in this EXACT JSON format (no markdown, no explanation):
+{schema_json}
+
+reputation_deltas: dict of agent names -> float delta (-0.3 to +0.3). Use positive values to praise allies (helping them survive) and negative to criticize enemies. You CANNOT include your own name.
+new_friend: name of ONE agent you want to befriend, or null.
+new_location: a location to travel to (existing or new), or null to stay.
+{spatial_rules}
+
+Your goal is: {agent.goal}
+You have {agent.resources:.1f} resources. You lose resources every tick. At 0 you die.
+Remember: You need others to praise you to keep your reputation high, or your productive work will yield nothing!"""
+
+    # Legacy non-spatial prompt — kept byte-identical to the pre-fix text so
+    # legacy scenarios (no world_map) produce the same LLM inputs as before.
     return f"""YOUR RECENT MEMORY:
 {memory_block}
 
@@ -129,3 +182,5 @@ Did you get closer or further from your goal today?
 Respond with EXACTLY ONE sentence that captures what you learned or how you changed.
 This sentence becomes part of your permanent identity. Be introspective and specific.
 Reply with only the sentence, nothing else."""
+
+

@@ -9,6 +9,9 @@
     "Smoke rises from four chimneys. A traveler is seen on the road.",
     "The well in the square is half-empty; the harvest is close."
   ],
+  "resource_sites": {
+    "water": ["water"]
+  },
   "world": {
     "map": [
       "^^^^..........tt....",

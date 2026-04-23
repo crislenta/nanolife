@@ -118,12 +118,23 @@ class Engine:
             # Restrict witnesses to agents in the same location
             local_witnesses = [a.id for a in alive if a.location == agent.location]
 
-            # Optional grid step (cognitive pre-clamps delta to ints in [-1,1]).
-            step = self._try_step(agent, decision.get("delta"), wmap, alive, tick_num, local_witnesses)
-            if step is not None:
-                self.world.event_log.append(step)
-                result.events.append(step)
-                agent.memory.append(step)
+            mode = decision.get("mode", "productive")
+
+            # Surface cognitive-layer parse errors so they show up in logs.
+            if (perr := decision.get("parse_error")):
+                pe: Event = {"tick": tick_num, "type": "parse_error", "agent": agent.id,
+                             "content": perr, "witnesses": [agent.id]}
+                self.world.event_log.append(pe)
+                result.events.append(pe)
+
+            # Grid step — only on the `walk` verb. Non-walk actions ignore delta.
+            if mode == "walk":
+                step = self._try_step(agent, decision.get("delta"), wmap, alive,
+                                      tick_num, local_witnesses)
+                if step is not None:
+                    self.world.event_log.append(step)
+                    result.events.append(step)
+                    agent.memory.append(step)
 
             new_location = decision.get("new_location")
             if new_location and new_location != agent.location:
@@ -158,7 +169,6 @@ class Engine:
                 "witnesses": [agent.id],
             }
 
-            mode = decision.get("mode", "productive")
             action_event: Event = {
                 "tick": tick_num,
                 "type": "action",
@@ -175,8 +185,29 @@ class Engine:
             result.events.extend([thought_event, action_event])
 
             if mode == "productive":
-                gain = self.world.base_gain * (1 - self.world.harshness) * max(0.1, 0.5 + agent.reputation)
-                agent.resources += gain
+                # Resource-site gating: if scenario declared resource_sites
+                # {resource: [terrain,...]} AND the action text mentions a
+                # gated resource AND the agent is not on/adjacent to a matching
+                # terrain tile, the productive action yields nothing. Absent
+                # resource_sites = no gating (legacy behavior unchanged).
+                blocked = False
+                sites = self.world.resource_sites
+                if sites and wmap is not None and agent.position is not None:
+                    low = decision["action"].lower()
+                    for res, terrains in sites.items():
+                        if res.lower() not in low:
+                            continue
+                        ax, ay = agent.position
+                        ok = any(
+                            wmap.in_bounds(ax + dx, ay + dy)
+                            and wmap.tiles[ay + dy][ax + dx].terrain in terrains
+                            for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1))
+                        )
+                        blocked = not ok
+                        break
+                if not blocked:
+                    gain = self.world.base_gain * (1 - self.world.harshness) * max(0.1, 0.5 + agent.reputation)
+                    agent.resources += gain
 
             for target_id, delta in decision.get("reputation_deltas", {}).items():
                 target = next((a for a in self.world.agents if a.id == target_id), None)

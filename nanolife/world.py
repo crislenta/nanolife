@@ -121,6 +121,11 @@ class WorldState:
     # decision["delta"] = (dx, dy) and see a local ASCII view each tick.
     # None = legacy behavior (no grid, no movement, no local_view).
     world_map: Any = None
+    # Optional resource-site gating. Shape: {resource_name: [terrain_tag,...]}.
+    # When set AND an agent's productive action text mentions a resource name,
+    # the action requires standing on or orthogonally adjacent to a tile with
+    # a matching terrain. Empty = no gating (legacy behavior preserved).
+    resource_sites: dict[str, list[str]] = field(default_factory=dict)
 
     @classmethod
     def create(

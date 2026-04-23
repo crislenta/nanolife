@@ -215,6 +215,8 @@ async def main() -> None:
         }
         render_worldmap = WorldMap.from_ascii(raw_map, legend)
         world.world_map = render_worldmap
+        if scenario and scenario.resource_sites:
+            world.resource_sites = dict(scenario.resource_sites)
 
     try:
         if args.render:
