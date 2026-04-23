@@ -46,6 +46,10 @@ class Agent:
     death_tick: int | None
     resources: float = 10.0
     location: str | None = None
+    # Optional (x, y) grid position used only by the renderer. The engine
+    # does not read this field; it exists so scenarios with a map can place
+    # agents on that map. None = not placed on a grid.
+    position: tuple[int, int] | None = None
 
     lifespan: int = 365  # ticks before natural death
 

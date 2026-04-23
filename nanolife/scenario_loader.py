@@ -55,4 +55,5 @@ def load_scenario(name: str) -> Scenario:
         base_gain=data.get("base_gain", 2.5),
         reputation_decay=data.get("reputation_decay", 0.02),
         starting_resources=data.get("starting_resources", 15.0),
+        world=data.get("world"),
     )
