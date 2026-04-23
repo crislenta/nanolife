@@ -84,19 +84,22 @@ Choose a MODE for this turn:
 - "social": talk, negotiate, praise, scheme — interact with others (use reputation_deltas to boost allies or crush enemies)
 - "rest": do nothing — no resource gain, still costs upkeep
 
-Respond in this EXACT JSON format (no markdown, no explanation):
+You have FULL FREE-WILL. Invent the specific action — do not just say "work". Real beings forage, hunt, weave, barter, flirt, gossip, mourn, pray, dance, plot, hoard, flee, teach. Pick whatever this moment calls for.
+
+Respond in this EXACT JSON format (no markdown, no explanation). Put decisions FIRST so they survive truncation:
 {{
-  "thought": "your private inner thought about the situation",
   "mode": "productive or social or rest",
-  "action": "what you do this turn — be specific, name people",
+  "action": "what you do this turn — concrete verb + object, name people",
   "reputation_deltas": {{"agent_name": delta}},
   "new_friend": "agent_name or null",
-  "new_location": "location_name or null"
+  "new_location": "location_name or null",
+  "thought": "one short sentence of private reasoning (<= 25 words)"
 }}
 
 reputation_deltas: dict of agent names -> float delta (-0.3 to +0.3). Use positive values to praise allies (helping them survive) and negative to criticize enemies. You CANNOT include your own name.
 new_friend: name of ONE agent you want to befriend, or null.
 new_location: a location to travel to (existing or new), or null to stay.
+action: a specific concrete act (e.g. "forage berries by the south ridge", "trade 2 resources to Ada for an alliance", "scheme against Bjorn with Cyra"). Reject generic verbs like "work".
 
 Your goal is: {agent.goal}
 You have {agent.resources:.1f} resources. You lose resources every tick. At 0 you die.
