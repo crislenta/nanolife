@@ -303,7 +303,7 @@ nanolife is far from complete in this current state, and can be advanced on mult
 - **PyPI package** — `pip install nanolife` with a CLI entry point so running a simulation is a one-liner.
 - **Spatial awareness** — Replace flat location lists with a coordinate graph so agents reason about distance, travel time, and line-of-sight. This unlocks territorial behavior and migration.
 - **Inter-agent trade & negotiation** — Agents currently cooperate or compete; a simple barter protocol would let resource scarcity drive alliances and betrayal organically.
-- **Benchmark suite** — Standardized metrics (survival rate, cooperation index, narrative coherence) across a fixed set of scenarios so model comparisons are reproducible.
+- **Benchmark suite** — `scripts/metrics.py` ships a reproducible harness: `score <run_dir>` computes survival rate, cooperation index, narrative coherence, action diversity, and emergence index from any run's `world.jsonl`; `sweep --scenarios ... --seeds ...` runs a grid and aggregates with mean+stdev. Pure Python, zero LLM. (More scenarios and statistical significance tests still welcome.)
 - **Others:** — Long-horizon memory, Emotional state model, Head-to-head LLMs
 
 ## License
