@@ -228,6 +228,49 @@ Runs Groq and OpenRouter sequentially with identical parameters, then prints a s
 
 Requires both `GROQ_API_KEY` and `OPENROUTER_API_KEY` in `.env`.
 
+### Statistical significance: comparing two sweeps
+
+`scripts/metrics.py` also ships a `compare` subcommand for asking "did this
+change actually move the metric, or just shuffle noise?". Given two
+`summary.json` files produced by `sweep`, it runs Welch's two-sample t-test
+(unequal variances) and Cohen's *d* on the per-seed values for every shared
+scenario × headline metric. Pure stdlib, zero LLM, deterministic.
+
+```bash
+# 1. run a baseline sweep
+python -m scripts.metrics sweep --scenarios nanothrones nanoception \
+    --seeds 0 1 2 3 4 --ticks 30 --agents 8
+# -> writes logs/sweeps/<id>/summary.json
+
+# 2. change something (model, prompt, primitive…) and run again
+python -m scripts.metrics sweep --scenarios nanothrones nanoception \
+    --seeds 0 1 2 3 4 --ticks 30 --agents 8
+
+# 3. compare
+python -m scripts.metrics compare \
+    logs/sweeps/<baseline_id>/summary.json \
+    logs/sweeps/<experiment_id>/summary.json \
+    --label-a baseline --label-b experiment \
+    -o logs/sweeps/compare.json
+```
+
+Output:
+
+```
+compare: baseline  vs  experiment
+=================================
+scenario       metric                    mean_baseli    mean_experi       diff   cohen_d         p sig
+------------------------------------------------------------------------------------------------------
+nanothrones    survival_rate                  0.1100         0.9200    -0.8100   -81.000    0.0000 *
+nanothrones    cooperation_index              0.0533         0.8500    -0.7967   -97.571    0.0000 *
+nanothrones    narrative_coherence            0.3033         0.3033     0.0000     0.000    1.0000
+...
+```
+
+Rows flagged with `*` are statistically significant at p < 0.05. The Welch
+implementation is cross-checked against `scipy.stats.ttest_ind(equal_var=False)`
+to ≤5e-5 on p and ≤1e-3 on t (see `tests/test_significance.py`).
+
 ## File Structure
 
 ```
@@ -303,7 +346,7 @@ nanolife is far from complete in this current state, and can be advanced on mult
 - **PyPI package** — `pip install nanolife` with a CLI entry point so running a simulation is a one-liner.
 - **Spatial awareness** — Replace flat location lists with a coordinate graph so agents reason about distance, travel time, and line-of-sight. This unlocks territorial behavior and migration.
 - **Inter-agent trade & negotiation** — Agents currently cooperate or compete; a simple barter protocol would let resource scarcity drive alliances and betrayal organically.
-- **Benchmark suite** — `scripts/metrics.py` ships a reproducible harness: `score <run_dir>` computes survival rate, cooperation index, narrative coherence, action diversity, and emergence index from any run's `world.jsonl`; `sweep --scenarios ... --seeds ...` runs a grid and aggregates with mean+stdev. Pure Python, zero LLM. (More scenarios and statistical significance tests still welcome.)
+- **Benchmark suite** — `scripts/metrics.py` ships a reproducible harness: `score <run_dir>` computes survival rate, cooperation index, narrative coherence, action diversity, and emergence index from any run's `world.jsonl`; `sweep --scenarios ... --seeds ...` runs a grid and aggregates with mean+stdev; `compare a.json b.json` runs Welch's t-test + Cohen's *d* per scenario × metric and flags significant differences at p<0.05. Pure Python, zero LLM. (More scenarios still welcome.)
 - **Others:** — Long-horizon memory, Emotional state model, Head-to-head LLMs
 
 ## License
