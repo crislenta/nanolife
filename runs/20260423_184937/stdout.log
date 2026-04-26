@@ -1,0 +1,73 @@
+[LLM] Initialized: model=openai/gpt-oss-120b, base_url=https://api.groq.com/openai/v1
+[92mSimulation defaulted to scenario nanothrones, ticks 50, and 12 agents from the scenario.[0m
+Calculated 50 turns for 12 agents · day ticks · Groq · estimated cost $0.18
+nanolife · nanothrones | 12 agents | 50 ticks | harshness 0.4 | day ticks
+Logs → logs/runs/20260426_084844
+────────────────────────────────────────────────────────────
+
+════════════════════════════════════════════════════════════
+Simulation complete in 0.0s
+Final: 12 alive, 0 dead, 0 born
+LLM cost: $0.0000 (0 tokens)
+Logs: logs/runs/20260426_084844
+
+════════════════════════════════════════════════════════════
+  POSTMORTEM
+════════════════════════════════════════════════════════════
+  Analyzing emergence...
+  Events: 16
+    birth              12
+    world               4
+  Emergence Index: 0/11
+  Detected: none
+
+  Extracting simulation data...
+  0 ticks | 12 births | 0 deaths
+  0 alliances | 0 rivalries | 0 rumors
+
+  Generating academic evaluation via openai/gpt-oss-120b...
+  [postmortem] Report generation failed: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+  Analysis saved: logs/runs/20260426_084844/analysis.json
+
+  Generating charts...
+/home/nebula/nanolife/nanolife/charts.py:134: UserWarning: Attempting to set identical low and high xlims makes transformation singular; automatically expanding.
+  ax.set_xlim(0, max_tick)
+  ✓ Survival curve: logs/runs/20260426_084844/chart_survival.png
+  ✗ Reputation heatmap: No reputation events found
+  ✗ Drama timeline: No ticks in event log
+  ✗ Alignment scatter: No agent activity found
+  Social graph viewer: logs/runs/20260426_084844/social_graph_viewer.html
+════════════════════════════════════════════════════════════
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/nebula/nanolife/scripts/simulate.py", line 333, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/usr/local/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/usr/local/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/local/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/nebula/nanolife/scripts/simulate.py", line 291, in main
+    results = await engine.run(args.ticks, on_tick=print_tick)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nebula/nanolife/nanolife/engine.py", line 455, in run
+    result = await self.tick()
+             ^^^^^^^^^^^^^^^^^
+  File "/home/nebula/nanolife/nanolife/engine.py", line 112, in tick
+    decisions = await asyncio.gather(*(
+                ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ))
+    ^^
+  File "/home/nebula/nanolife/nanolife/defaults/cognitive.py", line 75, in decide
+    user = turn_prompt(agent, visible_events, agents)
+  File "/home/nebula/nanolife/nanolife/prompts.py", line 158, in turn_prompt
+    transfer.give resources to someone: {"to": "agent_name", "amount": number}. Costs you, helps them. You can gift, trade, or demand payment.
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Invalid format specifier ' "agent_name", "amount": number' for object of type 'str'

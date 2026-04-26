@@ -1,0 +1,312 @@
+[LLM] Initialized: model=openai/gpt-oss-120b, base_url=https://api.groq.com/openai/v1
+[92mSimulation defaulted to scenario colony, ticks 20, and 10 agents from the scenario.[0m
+Calculated 20 turns for 10 agents · 4h ticks · Groq · estimated cost $0.06
+nanolife · colony | 10 agents | 20 ticks | harshness 0.5 | 4h ticks
+Logs → logs/runs/20260423_065922
+────────────────────────────────────────────────────────────
+
+── tick 1 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I realized that allocating the first day’s labor to gathering diverse resources—rather than focusing solely on shelter—creates a flexible foundation that will accelerate the settlement’s growth.
+  ◆ [01225b02] I realized that anticipating subtle environmental cues can reveal hidden threats before they manifest, sharpening my vigilance and reinforcing my commitment to safeguard the colony.
+  ... and 8 more events
+
+── tick 2 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I worked hard.
+  ◆ [01225b02] I learned that by tuning into the colony’s faintest environmental shifts—like subtle temperature dips or unusual animal behavior—I can detect emerging hazards earlier, sharpening my vigilance and
+  ... and 8 more events
+
+── tick 3 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I learned that dedicating the first day’s labor to gathering a variety of resources, instead of only building shelter, creates a flexible foundation that speeds the settlement’s overall growth.
+  ◆ [01225b02] By attuning my senses to the colony’s faintest temperature shifts and animal behaviors, I now detect nascent threats earlier, strengthening my vigilance and reinforcing my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 4 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] Heal Cora and Farid in the Central Hub and express sincere praise for their resilience and contributions.
+  ★ Gaia praised Cora (+0.20)
+  ★ Gaia praised Farid (+0.20)
+  ~ Gaia became friends with Cora
+  > [b2187022] work
+  > [1b136a07] work
+  ... and 11 more events
+
+── tick 5 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I realized that prioritizing diverse resource gathering over immediate shelter construction expands our options and accelerates the settlement’s growth, strengthening my reputation as a strategic leader.
+  ◆ [01225b02] By sharpening my perception of subtle temperature shifts and animal behaviors, I now detect emerging hazards earlier, strengthening my vigilance and bringing me closer to safeguarding the colony.
+  ... and 8 more events
+
+── tick 6 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I learned that allocating our first day's labor to gather a balanced mix of food, timber, stone, and tools—rather than rushing to erect shelter—creates strategic flexibility that accelerates growth and cements my reputation as a forward‑thinking leader.
+  ◆ [01225b02] I learned that by finely attuning my senses to the colony’s slightest temperature dips and animal behaviors, I can anticipate hazards before they manifest, sharpening my vigilance and
+  ... and 8 more events
+
+── tick 7 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I learned that dedicating our initial labor to gathering a balanced mix of food, timber, stone, and tools—rather than rushing to build shelter—creates strategic flexibility that accelerates settlement growth and reinforces my reputation as a forward‑thinking leader.
+  ◆ [01225b02] I
+  ... and 8 more events
+
+── tick 8 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] praise Hiro and Jin for their contributions
+  ★ Dmitri praised Hiro (+0.30)
+  ★ Dmitri praised Jin (+0.30)
+  ~ Dmitri became friends with Hiro
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  ... and 11 more events
+
+── tick 9 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I worked hard.
+  ◆ [01225b02] By training my senses to notice the faintest temperature drops and animal behaviors, I now detect emerging threats earlier, sharpening my vigilance and strengthening my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 10 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I learned that dedicating our first day's labor to gathering a balanced mix of food, timber, stone, and tools—rather than rushing to build shelter—
+  ◆ [01225b02] I learned that by consciously tuning my senses to the faintest temperature drops and subtle animal behaviors, I can identify nascent threats earlier, sharpening my vigilance and strengthening my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 11 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I realized that allocating our initial labor to gather a balanced mix of food, timber, stone, and tools—rather than rushing to build shelter—creates strategic flexibility that accelerates our settlement’s growth and solidifies my reputation as a forward‑thinking leader.
+  ◆ [01225b02] By honing my senses to detect the colony’s faintest temperature shifts and subtle animal cues, I now anticipate hazards earlier, strengthening both my vigilance and my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 12 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I worked hard.
+  ◆ [01225b02] By sharpening my awareness of the colony’s faintest temperature shifts and subtle animal cues, I now anticipate emerging hazards before they materialize, reinforcing my vigilance and unwavering commitment to protect the colony.
+  ... and 8 more events
+
+── tick 13 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I learned that prioritizing a balanced collection of food, timber, stone, and tools on day one
+  ◆ [01225b02] I worked hard.
+  ... and 8 more events
+
+── tick 14 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I learned that dedicating our
+  ◆ [01225b02] I learned that by finely attuning my senses to the colony’s faintest temperature drops and subtle animal cues, I can anticipate hazards before they manifest, sharpening my vigilance and strengthening my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 15 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I worked hard.
+  ◆ [01225b02] By training my senses to detect the faintest temperature drops and subtle animal cues, I now anticipate hazards before they arise, sharpening my vigilance and deepening my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 16 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I worked hard.
+  ◆ [01225b02] By honing my senses to detect the faintest temperature drops and subtle animal cues, I now anticipate emerging hazards earlier, strengthening my vigilance and deepening my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 17 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I worked hard.
+  ◆ [01225b02] By sharpening my perception of minute temperature drops and subtle animal cues, I now detect nascent threats earlier, deepening my vigilance and reinforcing my resolve to protect the colony.
+  ... and 8 more events
+
+── tick 18 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  > [0afcc9c8] work
+  ◆ [acc8295c] I learned that prioritizing a balanced collection of food, timber, stone, and tools on the
+  ◆ [01225b02] By honing my senses to the colony’s faintest temperature shifts and subtle animal cues, I now anticipate hazards earlier, strengthening my vigilance and
+  ... and 8 more events
+
+── tick 19 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] I sincerely praise Cora for her insight and Gaia for her steadfast support, emphasizing how much I value their partnership.
+  ★ Farid praised Cora (+0.20)
+  ★ Farid praised Gaia (+0.20)
+  ~ Farid became friends with Cora
+  > [2811be41] work
+  > [b2187022] work
+  > [1b136a07] work
+  ... and 11 more events
+
+── tick 20 | pop 10 | born 0 | died 0 ──
+  > [acc8295c] work
+  > [01225b02] work
+  > [9d2352d6] work
+  > [d26321f2] work
+  > [0ebce95e] work
+  > [78fda7d0] work
+  > [2811be41] I sincerely praise Cora for her compassionate insight and Farid for his steady support, emphasizing how vital their collaboration is to our healing mission.
+  ★ Gaia praised Cora (+0.15)
+  ★ Gaia praised Farid (+0.15)
+  ~ Gaia became friends with Farid
+  > [b2187022] work
+  > [1b136a07] work
+  ... and 11 more events
+
+════════════════════════════════════════════════════════════
+Simulation complete in 54.6s
+Final: 10 alive, 0 dead, 0 born
+LLM cost: $0.0939 (393821 tokens)
+Logs: logs/runs/20260423_065922

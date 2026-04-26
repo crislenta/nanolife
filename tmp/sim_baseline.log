@@ -1,0 +1,312 @@
+[LLM] Initialized: model=openai/gpt-oss-120b, base_url=https://api.groq.com/openai/v1
+[92mSimulation defaulted to scenario colony, ticks 20, and 10 agents from the scenario.[0m
+Calculated 20 turns for 10 agents · 4h ticks · Groq · estimated cost $0.06
+nanolife · colony | 10 agents | 20 ticks | harshness 0.5 | 4h ticks
+Logs → logs/runs/20260423_072524
+────────────────────────────────────────────────────────────
+
+── tick 1 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] Approach Ada in The Wilds, express gratitude for her presence, praise her helpful nature, and propose a mutual praise agreement to support each other's survival.
+  ★ Gaia praised Ada (+0.20)
+  ~ Gaia became friends with Ada
+  > [9943a740] travel to Central Hub
+  > [0f2053cb] work
+  > [625f6b77] work
+  ... and 10 more events
+
+── tick 2 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ◆ [d851602a] I learned that dedicating daily time to map essential resources and assign clear roles transforms abstract plans into actionable steps, moving our settlement decisively toward sustainable growth.
+  ◆ [6f107b68] I realized that diligent, focused effort today not only fortified the colony’s defenses but also reinforced my resolve to anticipate threats before they emerge.
+  ... and 8 more events
+
+── tick 3 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ◆ [d851602a] I discovered that dedicating focused daily sessions to map vital resources and assign clear roles turns vague ideas into concrete actions, instantly propelling our settlement toward sustainable growth.
+  ◆ [6f107b68] I learned that by channeling my effort into strengthening defenses
+  ... and 8 more events
+
+── tick 4 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ◆ [d851602a] I learned that dedicating a focused daily session to map vital resources and assign clear roles turns abstract ideas into concrete actions, instantly propelling our settlement toward sustainable growth.
+  ◆ [6f107b68] I learned that consistently investing focused effort into fortifying the colony’s defenses not only strengthens our security but also builds the credibility needed to forge reliable alliances.
+  ... and 8 more events
+
+── tick 5 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] praise Ada
+  ★ Bjorn praised Ada (+0.20)
+  ~ Bjorn became friends with Ada
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] praise Ada and ask her to praise me back
+  ★ Farid praised Ada (+0.20)
+  ~ Farid became friends with Ada
+  > [9bede96b] work
+  > [9943a740] work
+  ... and 15 more events
+
+── tick 6 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ◆ [d851602a] I learned that dedicating a focused daily session to map essential resources and assign clear roles transforms
+  ◆ [6f107b68] I learned that consistently investing focused effort into fortifying the colony’s defenses not only strengthens our security but also builds the credibility needed to forge reliable alliances.
+  ... and 8 more events
+
+── tick 7 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] approach Elena and discuss forming a mutual praise partnership to boost each other's reputation
+  ★ Dmitri praised Elena (+0.20)
+  ~ Dmitri became friends with Elena
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ... and 10 more events
+
+── tick 8 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ◆ [d851602a] I learned that dedicating a focused daily session to map essential resources and assign clear roles turns abstract ideas into concrete actions, instantly advancing our settlement toward sustainable growth.
+  ◆ [6f107b68] I worked hard.
+  ... and 8 more events
+
+── tick 9 | pop 10 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ◆ [d851602a] I learned that dedicating a focused daily session to map essential resources and
+  ◆ [6f107b68] I worked hard.
+  ... and 8 more events
+
+── tick 10 | pop 11 | born 1 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  ◆ [d851602a] I learned that allocating a focused daily session to map essential resources and assign clear roles converts abstract ideas into concrete actions, instantly advancing our settlement toward sustainable growth.
+  ◆ [6f107b68] I realized that proactively strengthening our defenses while publicly acknowledging allies amplifies security and builds reciprocal trust
+  ... and 9 more events
+
+── tick 11 | pop 11 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  ◆ [d851602a] I learned that dedicating a focused daily session to map essential resources and assign clear roles transforms abstract ideas into concrete
+  ... and 10 more events
+
+── tick 12 | pop 11 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  ◆ [d851602a] I realized that by dedicating a focused daily session to map essential resources and assign clear roles, I turn abstract plans into concrete actions that immediately accelerate our settlement’s path toward sustainable growth.
+  ... and 10 more events
+
+── tick 13 | pop 11 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  ◆ [d851602a] I learned that allocating a focused daily session to map essential resources and assign clear roles
+  ... and 10 more events
+
+── tick 14 | pop 11 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  ◆ [d851602a] I learned that dedicating a focused daily session to map essential resources and assign clear roles turns abstract ideas into concrete actions, instantly propelling our settlement toward sustainable growth.
+  ... and 10 more events
+
+── tick 15 | pop 12 | born 1 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  ◆ [d851602a] I discovered that dedicating a focused daily session to map essential resources and assign clear roles transforms abstract plans into concrete actions, instantly accelerating our settlement’s progress toward sustainable growth.
+  ... and 11 more events
+
+── tick 16 | pop 12 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  > [66c9be6d] work
+  ... and 12 more events
+
+── tick 17 | pop 12 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  > [66c9be6d] work
+  ... and 12 more events
+
+── tick 18 | pop 12 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  > [66c9be6d] work
+  ... and 12 more events
+
+── tick 19 | pop 11 | born 0 | died 1 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9bede96b] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  > [66c9be6d] work
+  ... and 13 more events
+
+── tick 20 | pop 11 | born 0 | died 0 ──
+  > [d851602a] work
+  > [6f107b68] work
+  > [3bc03584] work
+  > [24ef70c7] work
+  > [e1e9715f] work
+  > [6a0d39b4] work
+  > [9943a740] work
+  > [0f2053cb] work
+  > [625f6b77] work
+  > [bd83adb3] work
+  > [66c9be6d] work
+  ◆ [d851602a] I learned that dedicating a focused daily session to map essential resources and assign clear roles transforms abstract plans into concrete actions, instantly accelerating our settlement’s path toward sustainable growth.
+  ... and 10 more events
+
+════════════════════════════════════════════════════════════
+Simulation complete in 63.8s
+Final: 11 alive, 1 dead, 2 born
+LLM cost: $0.1004 (421980 tokens)
+Logs: logs/runs/20260423_072524

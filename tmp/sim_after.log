@@ -1,0 +1,312 @@
+[LLM] Initialized: model=openai/gpt-oss-120b, base_url=https://api.groq.com/openai/v1
+[92mSimulation defaulted to scenario colony, ticks 20, and 10 agents from the scenario.[0m
+Calculated 20 turns for 10 agents · 4h ticks · Groq · estimated cost $0.06
+nanolife · colony | 10 agents | 20 ticks | harshness 0.5 | 4h ticks
+Logs → logs/runs/20260423_073139
+────────────────────────────────────────────────────────────
+
+── tick 1 | pop 11 | born 1 | died 0 ──
+  > [dc9d6f73] discuss sustainable energy ideas with Dmitri and express gratitude for his insight
+  ★ Ada praised Dmitri (+0.20)
+  ★ Ada praised Gaia (+0.10)
+  ~ Ada became friends with Dmitri
+  > [4c861ee3] work
+  > [5c69b715] praise Farid for his resource gathering and propose an alliance of mutual support
+  ★ Cora praised Farid (+0.20)
+  ~ Cora became friends with Farid
+  > [57a0f323] talk with Ada about developing a simple water filtration device, praise her insight and ask for her support
+  ★ Dmitri praised Ada (+0.20)
+  > [50b4470f] discuss leadership vision with Iris, praising her guidance
+  ★ Elena praised Iris (+0.20)
+  ... and 24 more events
+
+── tick 2 | pop 11 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] gather Ada, Dmitri, Gaia, and Hiro at the Outskirts to propose a mutual defense pact and request they praise Bjorn for his strength
+  > [5c69b715] praise Corid for his resource gathering and propose a mutual praise pact
+  ★ Cora praised Corid (+0.20)
+  ~ Cora became friends with Corid
+  > [57a0f323] work
+  > [50b4470f] work
+  > [8bbbd343] work
+  > [5e4a2c42] work
+  > [783aaf4c] work
+  > [dda5a4f7] work
+  > [70685c67] talk with Ada about forming a mutual praise pact to coordinate defense construction
+  ... and 15 more events
+
+── tick 3 | pop 11 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] work
+  > [5c69b715] work
+  > [57a0f323] work
+  > [50b4470f] praise Iris for her dedication to preserving knowledge
+  ★ Elena praised Iris (+0.20)
+  > [8bbbd343] praise Cora for her wisdom and strength, praise Corid for his resource gathering, propose a mutual praise pact with both
+  ★ Farid praised Cora (+0.20)
+  ★ Farid praised Corid (+0.20)
+  ~ Farid became friends with Corid
+  > [5e4a2c42] work
+  > [783aaf4c] hold a council with Ada, Gaia, Bjorn, Dmitri, and Jin at the Outskirts to propose a mutual praise pact and ask them to praise Hiro for future exploration
+  ... and 20 more events
+
+── tick 4 | pop 12 | born 1 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] hold a council with Ada, Dmitri, Gaia, and Jin at the Outskirts to propose a mutual praise pact and promise to praise each of them for their defense contributions
+  ★ Bjorn praised Ada (+0.20)
+  ★ Bjorn praised Dmitri (+0.15)
+  ★ Bjorn praised Gaia (+0.10)
+  ★ Bjorn praised Jin (+0.10)
+  ~ Bjorn became friends with Ada
+  > [5c69b715] praise Farid for his insight and propose a mutual praise pact, then praise Corid for his resource gathering and propose a mutual praise pact
+  > [57a0f323] conduct a mutual praise ceremony with Ada, Gaia, Bjorn, Hiro, and Jin at the Outskirts, asking each to pledge praise for Dmitri
+  > [50b4470f] pause and gather my thoughts
+  > [8bbbd343] praise Cora for her wisdom and leadership, praise Corid for his hunting skill, ask both to praise me for my resource gathering
+  > [5e4a2c42] work
+  ... and 18 more events
+
+── tick 5 | pop 12 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] work
+  > [5c69b715] work
+  > [57a0f323] craft a solar concentrator prototype using salvaged lenses at the Outskirts
+  ★ Dmitri praised Ada (+0.15)
+  ★ Dmitri praised Bjorn (+0.15)
+  ★ Dmitri praised Gaia (+0.15)
+  ★ Dmitri praised Hiro (+0.15)
+  ★ Dmitri praised Jin (+0.15)
+  > [50b4470f] work
+  > [8bbbd343] praise Cora for her leadership, praise Corid for his hunting skill, ask both to praise me for my foraging
+  ★ Farid praised Cora (+0.20)
+  ... and 25 more events
+
+── tick 6 | pop 13 | born 1 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] praise Ada for her engineering brilliance and Gaia for her strategic insight in the defense pact
+  ★ Bjorn praised Ada (+0.20)
+  ★ Bjorn praised Gaia (+0.20)
+  ~ Bjorn became friends with Hiro
+  > [5c69b715] forage edible roots near the crystal creek with Farid and Corid
+  > [57a0f323] work
+  > [50b4470f] praise Iris for her dedication to community care and propose a mutual praise pact; praise Elris for his emerging leadership and ask his support
+  ★ Elena praised Iris (+0.25)
+  ★ Elena praised Elris (+0.25)
+  > [8bbbd343] forage edible roots and tubers near the creek with Cora and Corid
+  ★ Farid praised Cora (+0.20)
+  ... and 20 more events
+
+── tick 7 | pop 13 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] work
+  > [5c69b715] work
+  > [57a0f323] work
+  > [50b4470f] work
+  > [8bbbd343] forage edible roots and tubers near the crystal creek with Cora and Corid
+  ★ Farid praised Cora (+0.10)
+  ★ Farid praised Corid (+0.10)
+  > [5e4a2c42] work
+  > [783aaf4c] hold a council with Ada, Gaia, Bjorn, and Jin to plan a scouting expedition beyond the settlement
+  ~ Hiro became friends with Jin
+  > [dda5a4f7] work
+  ... and 21 more events
+
+── tick 8 | pop 14 | born 1 | died 0 ──
+  > [dc9d6f73] hold a council meeting with Bjorn, Dmitri, Gaia, Hiro, and Jin to discuss mutual praise and resource sharing
+  > [4c861ee3] hold a council with Ada, Dmitri, Gaia, Hiro, and Jin, publicly praising each for their contributions to the colony
+  > [5c69b715] forage edible roots and tubers near the crystal creek with Farid and Corid
+  ★ Cora praised Farid (+0.10)
+  ★ Cora praised Corid (+0.10)
+  > [57a0f323] work
+  > [50b4470f] work
+  > [8bbbd343] forage edible roots and tubers near the crystal creek with Cora and Corid
+  ★ Farid praised Cora (+0.20)
+  ★ Farid praised Corid (+0.20)
+  > [5e4a2c42] work
+  > [783aaf4c] work
+  ... and 22 more events
+
+── tick 9 | pop 14 | born 0 | died 0 ──
+  > [dc9d6f73] hold a council around the fire, publicly praising Bjorn's leadership, Dmitri's resilience, Gaia's strategy, Hiro's engineering, Jin's diplomacy, and JiAda's optimism, and ask them to acknowledge Ada's coordination efforts
+  > [4c861ee3] work
+  > [5c69b715] work
+  > [57a0f323] work
+  > [50b4470f] hold a council in Central Hub, publicly praising Iris's dedication and Elris's strategic insight, and request they acknowledge my leadership
+  ★ Elena praised Iris (+0.20)
+  ★ Elena praised Elris (+0.20)
+  > [8bbbd343] work
+  > [5e4a2c42] work
+  > [783aaf4c] pause and gather my thoughts
+  > [dda5a4f7] forage edible roots and herbs along the crystal creek with Elena and Elris
+  ★ Iris praised Elena (+0.10)
+  ... and 24 more events
+
+── tick 10 | pop 14 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] hold a council around the fire, publicly praising Ada, Dmitri, Gaia, Hiro, Jin, JiAda, and HiAda, and ask each to acknowledge my protection of the colony
+  > [5c69b715] work
+  > [57a0f323] work
+  > [50b4470f] forage edible roots and herbs along the crystal creek with Iris and Elris
+  ★ Elena praised Iris (+0.20)
+  ★ Elena praised Elris (+0.20)
+  > [8bbbd343] work
+  > [5e4a2c42] hold a council around the fire, thank Ada, Bjorn, Dmitri, Hiro, Jin, JiAda, and HiAda for their support, and ask each to publicly praise Gaia's healing efforts
+  ~ Gaia became friends with JiAda
+  > [783aaf4c] forage edible roots and small game near the fire pit with Ada and Bjorn
+  > [dda5a4f7] forage edible roots and herbs along the crystal creek with Elena and Elris
+  ... and 23 more events
+
+── tick 11 | pop 14 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] work
+  > [5c69b715] praise Farid for his keen foraging, praise Corid for his leadership, propose a mutual praise pact to reinforce trust
+  ★ Cora praised Farid (+0.20)
+  ★ Cora praised Corid (+0.20)
+  > [57a0f323] work
+  > [50b4470f] forage edible roots and herbs along the crystal creek with Iris and Elris
+  ★ Elena praised Iris (+0.20)
+  ★ Elena praised Elris (+0.20)
+  > [8bbbd343] work
+  > [5e4a2c42] work
+  > [783aaf4c] hunt rabbit in the scrubby thicket with Ada and Gaia
+  ... and 29 more events
+
+── tick 12 | pop 14 | born 0 | died 0 ──
+  > [dc9d6f73] hunt rabbit in the scrubby thicket with Gaia and Bjorn
+  ★ Ada praised Bjorn (+0.20)
+  ★ Ada praised Dmitri (+0.20)
+  > [4c861ee3] host a brief gratitude ceremony for Ada, Hiro, Jin, and Gaia, publicly praising their contributions to colony defense
+  > [5c69b715] forage edible roots and tubers near the crystal creek with Farid and Corid
+  ★ Cora praised Farid (+0.20)
+  ★ Cora praised Corid (+0.20)
+  > [57a0f323] work
+  > [50b4470f] praise Iris for her foraging skill and praise Elris for her strategic insights
+  ★ Elena praised Iris (+0.20)
+  ★ Elena praised Elris (+0.20)
+  > [8bbbd343] work
+  ... and 35 more events
+
+── tick 13 | pop 14 | born 0 | died 0 ──
+  > [dc9d6f73] forage edible roots and trap small game near the river with Bjorn and Gaia
+  ★ Ada praised Bjorn (+0.10)
+  ★ Ada praised Gaia (+0.10)
+  ★ Ada praised Jin (+0.05)
+  > [4c861ee3] host a gratitude circle at the firepit, publicly praising Ada, Hiro, Jin, and Dmitri for their defense efforts
+  > [5c69b715] forage edible roots and tubers near the crystal creek with Farid and Corid
+  ★ Cora praised Farid (+0.20)
+  ★ Cora praised Corid (+0.20)
+  > [57a0f323] host a gratitude ceremony, publicly praising Ada, Bjorn, Gaia, Hiro, and Jin for their contributions to colony defense
+  ~ Dmitri became friends with JiAda
+  > [50b4470f] forage edible roots and herbs in the garden near the Central Hub with Iris and Elris
+  > [8bbbd343] praise Cora for her keen eye spotting edible roots, and praise Corid for his strength digging the tubers
+  ... and 30 more events
+
+── tick 14 | pop 14 | born 0 | died 0 ──
+  > [dc9d6f73] host a gratitude circle at the firepit, publicly praising Bjorn, Gaia, Hiro, Jin, Dmitri, and HiAda for their contributions and inviting them to praise me
+  > [4c861ee3] work
+  > [5c69b715] hunt small game near crystal creek with Farid and Corid
+  ★ Cora praised Farid (+0.10)
+  ★ Cora praised Corid (+0.10)
+  > [57a0f323] craft a solar energy concentrator using scavenged lenses with Ada and Gaia
+  ★ Dmitri praised Ada (+0.20)
+  ★ Dmitri praised Gaia (+0.20)
+  > [50b4470f] forage edible roots and herbs in the garden near the Central Hub with Iris and Elris
+  ★ Elena praised Iris (+0.20)
+  ★ Elena praised Elris (+0.20)
+  > [8bbbd343] thank Cora for her keen eye spotting roots and Corid for his strength digging tubers, and ask both to praise me
+  ... and 44 more events
+
+── tick 15 | pop 13 | born 0 | died 1 ──
+  > [dc9d6f73] hunt rabbit and gather tubers by the river with Gaia, Bjorn, and Hiro
+  ★ Ada praised Jin (+0.20)
+  > [4c861ee3] work
+  > [5c69b715] work
+  > [57a0f323] publicly commend Ada, Gaia, Jin, and Hiro for their vital contributions during today’s hunt and foraging
+  ★ Dmitri praised Ada (+0.20)
+  ★ Dmitri praised Gaia (+0.20)
+  ★ Dmitri praised Jin (+0.20)
+  ★ Dmitri praised Hiro (+0.10)
+  ~ Dmitri became friends with Hiro
+  > [50b4470f] forage edible roots and herbs in the garden with Iris and Elris
+  ★ Elena praised Iris (+0.15)
+  ... and 38 more events
+
+── tick 16 | pop 13 | born 0 | died 0 ──
+  > [dc9d6f73] pause and gather my thoughts
+  > [4c861ee3] work
+  > [5c69b715] forage edible roots and tubers near Crystal Creek with Farid and Corid
+  ★ Cora praised Farid (+0.20)
+  ★ Cora praised Corid (+0.20)
+  > [57a0f323] work
+  > [50b4470f] forage edible roots and herbs in the garden near the Central Hub with Iris and Elris
+  ★ Elena praised Iris (+0.20)
+  ★ Elena praised Elris (+0.20)
+  > [8bbbd343] forage edible roots and tubers near Crystal Creek with Cora and Corid
+  ★ Farid praised Cora (+0.20)
+  ★ Farid praised Corid (+0.20)
+  ... and 24 more events
+
+── tick 17 | pop 12 | born 0 | died 1 ──
+  > [dc9d6f73] hunt rabbit and gather tubers by the Riverbank with Hiro and Ada
+  ★ Ada praised Hiro (+0.20)
+  ★ Ada praised Bjorn (+0.10)
+  > [4c861ee3] pause and gather my thoughts
+  > [5c69b715] forage edible roots and tubers near Crystal Creek with Farid and Corid
+  > [57a0f323] hunt rabbit and gather tubers by the river with Ada and Hiro
+  ★ Dmitri praised Ada (+0.20)
+  ★ Dmitri praised Hiro (+0.20)
+  > [50b4470f] pause and gather my thoughts
+  > [8bbbd343] forage edible roots and tubers near Crystal Creek with Cora and Corid
+  ★ Farid praised Cora (+0.20)
+  ★ Farid praised Corid (+0.20)
+  ... and 26 more events
+
+── tick 18 | pop 12 | born 0 | died 0 ──
+  > [dc9d6f73] hunt rabbit and gather tubers by the Riverbank with Hiro and Bjorn
+  ★ Ada praised Hiro (+0.20)
+  ★ Ada praised Bjorn (+0.20)
+  ★ Ada praised Dmitri (+0.10)
+  > [4c861ee3] hunt rabbit and gather tubers by the Riverbank with Ada and Hiro
+  ★ Bjorn praised Ada (+0.20)
+  ★ Bjorn praised Hiro (+0.20)
+  > [5c69b715] forage edible roots and tubers near Crystal Creek with Farid and Corid
+  ★ Cora praised Farid (+0.20)
+  ★ Cora praised Corid (+0.20)
+  > [57a0f323] publicly thank Ada, Bjorn, Gaia, Hiro, and Jin for their contributions during today's hunt
+  ★ Dmitri praised Ada (+0.20)
+  ... and 34 more events
+
+── tick 19 | pop 12 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] hunt rabbit and gather tubers by the Riverbank with Ada and Hiro
+  > [5c69b715] work
+  > [57a0f323] work
+  > [50b4470f] forage edible roots and tubers near the crystal creek with Iris
+  ★ Elena praised Iris (+0.20)
+  > [8bbbd343] work
+  > [5e4a2c42] hunt rabbit and gather tubers by the Riverbank with Ada and Bjorn
+  ★ Gaia praised Ada (+0.05)
+  ★ Gaia praised Bjorn (+0.05)
+  ★ Gaia praised Dmitri (+0.05)
+  ★ Gaia praised Hiro (+0.05)
+  ... and 23 more events
+
+── tick 20 | pop 12 | born 0 | died 0 ──
+  > [dc9d6f73] work
+  > [4c861ee3] hold a gratitude ceremony with Ada, Hiro, Gaia, and Dmitri, publicly honoring their contributions
+  ★ Bjorn praised Ada (+0.20)
+  ★ Bjorn praised Hiro (+0.20)
+  ★ Bjorn praised Gaia (+0.20)
+  ★ Bjorn praised Dmitri (+0.20)
+  ~ Bjorn became friends with Dmitri
+  > [5c69b715] share heartfelt praise with Elena, Farid, and Corid around the campfire, each acknowledging the other's contributions
+  > [57a0f323] work
+  > [50b4470f] forage edible roots and tubers with Iris, Cora, and Farid near Crystal Creek
+  ★ Elena praised Iris (+0.10)
+  ★ Elena praised Cora (+0.10)
+  ... and 29 more events
+
+════════════════════════════════════════════════════════════
+Simulation complete in 100.9s
+Final: 12 alive, 2 dead, 4 born
+LLM cost: $0.1530 (600990 tokens)
+Logs: logs/runs/20260423_073139

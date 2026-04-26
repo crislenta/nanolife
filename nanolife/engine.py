@@ -241,6 +241,29 @@ class Engine:
                 self.world.event_log.append(friendship_event)
                 result.events.append(friendship_event)
 
+            # --- Transfer ---
+            xfer = decision.get("transfer", {})
+            xfer_to = xfer.get("to") if xfer else None
+            xfer_amount = xfer.get("amount")
+            if xfer_to and xfer_amount and xfer_amount > 0:
+                # Resolve by ID first (parser output), then by name (raw LLM output)
+                target = next((a for a in self.world.agents if a.id == xfer_to), None)
+                if target is None:
+                    target = next((a for a in self.world.agents if a.name.lower() == str(xfer_to).lower()), None)
+                if target and target.alive and agent.resources >= xfer_amount:
+                    agent.resources -= xfer_amount
+                    target.resources += xfer_amount
+                    xfer_event: Event = {
+                        "tick": tick_num,
+                        "type": "transfer",
+                        "agent": agent.id,
+                        "content": f"{agent.name} gave {xfer_amount:.1f} resources to {target.name}",
+                        "amount": xfer_amount,
+                        "witnesses": local_witnesses,
+                    }
+                    self.world.event_log.append(xfer_event)
+                    result.events.append(xfer_event)
+
         # --- Rumor spread ---
         if self.spread:
             rumors = self.spread.spread(alive, self.world.event_log.all(), degradation=0.2)
