@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mission-aware autonomous developer for nanolife.
+Mission-aware autonomous developer for nanosim.
 
 Core Mission: Minimalist implementation of evolutionary biology and social dynamics 
 with LLM agents where they have perfect freedom like true beings.
@@ -23,7 +23,7 @@ import httpx
 
 
 class MissionValidator:
-    """Ensures all changes align with nanolife's core mission."""
+    """Ensures all changes align with nanosim's core mission."""
     
     CORE_PRIMITIVES = {
         "event_log", "local_observation", "scarcity", "harshness",
@@ -141,10 +141,10 @@ class AutonomousDeveloper:
         """Use LLM to analyze an improvement and propose implementation."""
         
         # Read relevant context
-        engine_code = (self.project_root / "nanolife/engine.py").read_text()
+        engine_code = (self.project_root / "nanosim/engine.py").read_text()
         readme = (self.project_root / "README.md").read_text()
         
-        prompt = f"""You are an autonomous developer working on nanolife, a minimalist LLM-based artificial life simulation.
+        prompt = f"""You are an autonomous developer working on nanosim, a minimalist LLM-based artificial life simulation.
 
 MISSION: Minimalist implementation of evolutionary biology and social dynamics with LLM agents where they have perfect freedom like true beings.
 

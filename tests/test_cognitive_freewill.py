@@ -29,8 +29,8 @@ import json
 
 import pytest
 
-from nanolife.common import Agent
-from nanolife.defaults.cognitive import LLMCognitive
+from nanosim.common import Agent
+from nanosim.defaults.cognitive import LLMCognitive
 
 
 # ---------------------------------------------------------------------------

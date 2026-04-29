@@ -7,7 +7,7 @@ The engine only *reads* this module when a scenario attaches a ``WorldMap``;
 legacy scenarios (no ``world`` block) stay byte-identical.
 
 Note: this module is named ``worldmap`` (not ``world``) because
-``nanolife.world`` is already taken by the simulation's shared WorldState.
+``nanosim.world`` is already taken by the simulation's shared WorldState.
 """
 from __future__ import annotations
 

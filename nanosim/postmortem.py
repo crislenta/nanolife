@@ -470,13 +470,13 @@ def _extract_rich_data(run_dir: Path) -> dict:
             elif score <= -0.3:
                 rivalries.append(f"{agent} vs {target} (hostility: {score:+.1f})")
 
-    scenario = "nanolife simulation"
+    scenario = "nanosim simulation"
     tick_unit = "unknown"
     for e in world_events:
         content = e.get("content", "")
         if content.startswith("SYSTEM_TICK_UNIT="):
             tick_unit = content.split("=")[1].strip()
-        elif scenario == "nanolife simulation":
+        elif scenario == "nanosim simulation":
             scenario = content[:200]
 
     juicy_rumors = [f"Tick {r.get('tick')}: {r.get('content', '')}" for r in rumors[:30]]
@@ -723,7 +723,7 @@ blockquote {
   .abstract { margin: 1em 2em; }
 }"""
 
-_PAPER_PROMPT = """You are a computational social scientist writing an academic evaluation of results from "nanolife," a minimal artificial-life simulation where LLM-powered agents interact under evolutionary and social pressures.
+_PAPER_PROMPT = """You are a computational social scientist writing an academic evaluation of results from "nanosim," a minimal artificial-life simulation where LLM-powered agents interact under evolutionary and social pressures.
 
 Your output must be the BODY CONTENT of an HTML document — everything that goes inside <main>...</main>. Do NOT output <html>, <head>, <style>, or <body> tags. Do NOT output CSS. Only semantic HTML content: <header>, <section>, <h2>, <h3>, <p>, <table>, <blockquote>, <div> elements, etc.
 
@@ -750,7 +750,7 @@ Write the paper with these sections. Use proper <h2> numbered headings (1. Abstr
 
 <header>
   <h1>[Generate a precise, academic paper title reflecting the key finding of this specific simulation]</h1>
-  <div class="authors">nanolife automated analysis by gpt-oss-120b</div>
+  <div class="authors">nanosim automated analysis by gpt-oss-120b</div>
   <div class="affiliation">Post-Simulation Evaluation Report</div>
 </header>
 
@@ -758,7 +758,7 @@ Write the paper with these sections. Use proper <h2> numbered headings (1. Abstr
 
 2. INTRODUCTION — Describe the scenario and its initial conditions. What was the world? Who were the agents? What were the environmental pressures (harshness, resource scarcity)? What time scale was simulated (explain the tick unit = {tick_unit})? State the research questions: what social dynamics might emerge from these conditions?
 
-3. METHODOLOGY — Briefly describe nanolife's framework: event log, local observation, resource (abstract scalar — meaning defined by scenario), reputation, heredity with drift, compression with loss. Key mechanic: agents choose each tick whether to work (earn base income) or not, and may transfer resource to other agents. Describe the emergence detection criteria used. Present simulation parameters in a table.
+3. METHODOLOGY — Briefly describe nanosim's framework: event log, local observation, resource (abstract scalar — meaning defined by scenario), reputation, heredity with drift, compression with loss. Key mechanic: agents choose each tick whether to work (earn base income) or not, and may transfer resource to other agents. Describe the emergence detection criteria used. Present simulation parameters in a table.
 
 4. QUANTITATIVE RESULTS — Present population dynamics (births, deaths, survival rates, removal causes), social interaction metrics (friendships, reputation events, rumors), ECONOMIC metrics (total transfers, transfer volume, global work rate), and the emergence index breakdown in tables. Compute and present: mortality rate, friendships-per-agent ratio, average lifespan, work rate distribution, net resource flow per agent. Use HTML tables with <caption> tags.
 
@@ -927,7 +927,7 @@ async def _generate_report(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>nanolife — Post-Simulation Evaluation</title>
+<title>nanosim — Post-Simulation Evaluation</title>
 <style>
 {_PAPER_CSS}
 </style>
@@ -1001,7 +1001,7 @@ async def run_postmortem(
         annex = _build_agent_annex(run_dir, data)
         if annex:
             annex_html = f"""<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>nanolife — Agent Logs</title>
+<html lang="en"><head><meta charset="UTF-8"><title>nanosim — Agent Logs</title>
 <style>{_PAPER_CSS}</style></head><body><main>{annex}</main></body></html>"""
             annex_path = run_dir / "agent_logs.html"
             annex_path.write_text(annex_html)
@@ -1032,7 +1032,7 @@ async def run_postmortem(
 
     print("\n  Generating charts...")
     try:
-        from nanolife.charts import generate_all_charts
+        from nanosim.charts import generate_all_charts
         generate_all_charts(run_dir)
     except Exception as exc:
         print(f"  [postmortem] Chart generation failed: {exc}")

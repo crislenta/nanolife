@@ -1,18 +1,16 @@
-"""Main entry point — run a nanolife simulation from the command line.
+"""Main entry point — run a nanosim simulation from the command line.
 
 Parses CLI args, loads a scenario, wires up the engine with LLM providers,
-and renders output via the Rich dashboard or plain text.
+and renders output via the map-centered renderer (TTY) or plain text (CI/pipe).
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
 import os
-import signal
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -26,10 +24,10 @@ if _env_path.exists():
             if value and key.strip() not in os.environ:
                 os.environ[key.strip()] = value.strip().strip("\"'")
 
-from nanolife.common import TickResult
-from nanolife.defaults.cognitive import LLMCognitive
-from nanolife.engine import Engine
-from nanolife.world import WorldState
+from nanosim.common import TickResult
+from nanosim.defaults.cognitive import LLMCognitive
+from nanosim.engine import Engine
+from nanosim.world import WorldState
 
 NAMES = [
     "Ada", "Bjorn", "Cora", "Dmitri", "Elena", "Farid", "Gaia", "Hiro",
@@ -40,7 +38,7 @@ NAMES = [
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="nanolife — artificial life simulation")
+    p = argparse.ArgumentParser(description="nanosim — artificial life simulation")
     p.add_argument("--agents", type=int, default=None, help="Number of starting agents (default: all for scenario, 10 otherwise)")
     p.add_argument("--ticks", type=int, default=50, help="Number of ticks to simulate")
     p.add_argument("--harshness", type=float, default=0.5, help="World harshness 0.0-1.0")
@@ -50,7 +48,6 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--report-model", type=str, default=None, help="Model for postmortem report (default depends on provider)")
     p.add_argument("--no-report", action="store_true", help="Skip postmortem report generation")
     p.add_argument("--open-router", action="store_true", help="Use OpenRouter with Gemini instead of Groq")
-    p.add_argument("--render", action="store_true", help="Use the minimal terminal renderer (map + roster + log) instead of the dashboard")
     return p.parse_args()
 
 
@@ -93,12 +90,12 @@ async def main() -> None:
 
     scenario = None
     if args.scenario:
-        from nanolife.scenario_loader import load_scenario
+        from nanosim.scenario_loader import load_scenario
         scenario = load_scenario(args.scenario)
 
     harshness = scenario.harshness if scenario else args.harshness
     tick_unit = scenario.tick_unit if scenario else args.tick_unit
-    scenario_name = scenario.name if scenario else "nanolife"
+    scenario_name = scenario.name if scenario else "nanosim"
 
     world = WorldState.create(
         harshness=harshness,
@@ -121,8 +118,8 @@ async def main() -> None:
         base_url=provider["base_url"],
     )
 
-    from nanolife.defaults.spread import RandomSpread
-    from nanolife.defaults.compression import LLMCompression
+    from nanosim.defaults.spread import RandomSpread
+    from nanosim.defaults.compression import LLMCompression
     spread = RandomSpread()
     compression = LLMCompression(
         model=provider["model"],
@@ -192,9 +189,9 @@ async def main() -> None:
         print(f"\033[92mSimulation defaulted to scenario {args.scenario}, ticks {args.ticks}, and {n} agents from the scenario.\033[0m")
     print(f"Calculated {args.ticks} turns for {n} agents · {tick_unit} ticks · {provider['provider_label']} · estimated cost ${est_cost:.2f}")
 
-    use_dashboard = os.isatty(1) and not os.environ.get("NANOLIFE_PLAIN") and not args.render
-    scenario_label = args.scenario or "nanolife"
-    renderer = None
+    # Renderer mode: map-centered Rich renderer when stdout is a TTY,
+    # plain stdout fallback for CI / piped output.
+    use_render = os.isatty(1)
     t0 = time.time()
     elapsed = 0.0
 
@@ -203,7 +200,7 @@ async def main() -> None:
     # grid movement) regardless of which renderer the user picks.
     render_worldmap = None
     if scenario and scenario.world:
-        from nanolife.worldmap import Tile, WorldMap
+        from nanosim.worldmap import Tile, WorldMap
         wdef = scenario.world
         raw_map = wdef.get("map", "")
         if isinstance(raw_map, list):
@@ -219,8 +216,8 @@ async def main() -> None:
             world.resource_sites = dict(scenario.resource_sites)
 
     try:
-        if args.render:
-            from nanolife.render import render as render_frame
+        if use_render:
+            from nanosim.render import render as render_frame
             rich_console = None
             event_lines: list[str] = []
 
@@ -233,7 +230,14 @@ async def main() -> None:
                     who = e.get("agent", "world")
                     content = e.get("content", "")
                     event_lines.append(f"t{result.tick:>4} [{t}] {who}: {content}")
-                frame = render_frame(render_worldmap, list(world.agents), event_lines, result.tick)
+                cost = cognitive.total_cost if hasattr(cognitive, "total_cost") else None
+                frame = render_frame(
+                    render_worldmap,
+                    list(world.agents),
+                    event_lines,
+                    result.tick,
+                    cost=cost,
+                )
                 if rich_console is None:
                     from rich.console import Console as _C
                     rich_console = _C()
@@ -243,20 +247,8 @@ async def main() -> None:
             t0 = time.time()
             results = await engine.run(args.ticks, on_tick=on_tick_render)
             elapsed = time.time() - t0
-        elif use_dashboard:
-            from nanolife.terminal import TerminalRenderer
-            renderer = TerminalRenderer(world, scenario_label)
-            renderer.start()
-
-            def on_tick_dashboard(result: TickResult) -> None:
-                cost = cognitive.total_cost if hasattr(cognitive, "total_cost") else 0.0
-                renderer.update(result, cost)
-
-            t0 = time.time()
-            results = await engine.run(args.ticks, on_tick=on_tick_dashboard)
-            elapsed = time.time() - t0
         else:
-            print(f"nanolife · {scenario_name} | {n} agents | {args.ticks} ticks | harshness {harshness} | {tick_unit} ticks")
+            print(f"nanosim · {scenario_name} | {n} agents | {args.ticks} ticks | harshness {harshness} | {tick_unit} ticks")
             print(f"Logs → {run_dir}")
             print("─" * 60)
 
@@ -300,12 +292,6 @@ async def main() -> None:
         raise
 
     finally:
-        if renderer:
-            try:
-                renderer.stop()
-            except Exception:
-                pass
-
         alive = world.population
         dead = world.total_deaths
         born = world.total_births
@@ -316,7 +302,7 @@ async def main() -> None:
         print(f"Logs: {run_dir}")
 
         if not args.no_report:
-            from nanolife.postmortem import run_postmortem
+            from nanosim.postmortem import run_postmortem
             try:
                 await run_postmortem(
                     run_dir=run_dir,

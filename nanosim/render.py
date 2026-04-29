@@ -74,7 +74,7 @@ def _header_panel(tick: int, agents: list[Agent], cost: float | None) -> Panel:
     alive = sum(1 for a in agents if a.alive)
     total = len(agents)
     bits = [
-        Text("nanolife", style=_TITLE),
+        Text("nanosim", style=_TITLE),
         Text(f"tick {tick:04d}", style="bold white"),
         Text(f"pop {alive}/{total}", style="white"),
     ]

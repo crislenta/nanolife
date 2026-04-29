@@ -1,6 +1,6 @@
-# Autonomous Worker for nanolife
+# Autonomous Worker for nanosim
 
-This system runs 24/7 to continuously develop and improve nanolife through automated experimentation.
+This system runs 24/7 to continuously develop and improve nanosim through automated experimentation.
 
 ## What It Does
 
@@ -39,9 +39,9 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOHBaNpGP0wqCwCcPSPQAlO5f6+st1h0KtQ28GH0T41
 ```
 
 **Steps:**
-1. Go to https://github.com/crislenta/nanolife/settings/keys
+1. Go to https://github.com/crislenta/nanosim/settings/keys
 2. Click "Add deploy key"
-3. Title: `nanolife-autonomous-worker`
+3. Title: `nanosim-autonomous-worker`
 4. Paste the key above
 5. **Check "Allow write access"** ✓
 6. Click "Add key"
@@ -51,13 +51,13 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOHBaNpGP0wqCwCcPSPQAlO5f6+st1h0KtQ28GH0T41
 Check if the worker is running:
 ```bash
 # View service status
-supervisorctl status nanolife-worker
+supervisorctl status nanosim-worker
 
 # View logs
 tail -f autonomous_logs/worker_*.log
 
 # Restart service
-supervisorctl restart nanolife-worker
+supervisorctl restart nanosim-worker
 ```
 
 ## How It Works
@@ -87,7 +87,7 @@ REPEAT
 ### Output Structure
 
 ```
-nanolife/
+nanosim/
 ├── autonomous_logs/
 │   ├── worker_YYYYMMDD_HHMMSS.log       # Worker activity log
 │   ├── report_cycle1.md                  # Experiment reports
@@ -134,13 +134,13 @@ The worker is designed to run indefinitely. If it stops:
 
 ```bash
 # Check service status
-supervisorctl status nanolife-worker
+supervisorctl status nanosim-worker
 
 # View recent errors
 tail -100 autonomous_logs/worker_*.log | grep ERROR
 
 # Restart
-supervisorctl restart nanolife-worker
+supervisorctl restart nanosim-worker
 ```
 
 ## Cost Estimates

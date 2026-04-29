@@ -1,4 +1,4 @@
-"""Reproducible metrics harness for nanolife.
+"""Reproducible metrics harness for nanosim.
 
 Two modes:
 
@@ -35,7 +35,13 @@ from pathlib import Path
 _REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO))
 
-from nanolife.metrics import aggregate_runs, compute_metrics, format_table
+from nanosim.metrics import (
+    aggregate_runs,
+    compare_sweeps,
+    compute_metrics,
+    format_compare,
+    format_table,
+)
 
 
 def _resolve_run_dirs(patterns: list[str]) -> list[Path]:
@@ -190,8 +196,30 @@ def cmd_sweep(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_compare(args: argparse.Namespace) -> int:
+    """Compare two sweep summary.json files with Welch's t-test per metric."""
+    path_a, path_b = Path(args.summary_a), Path(args.summary_b)
+    if not path_a.is_file():
+        print(f"summary not found: {path_a}", file=sys.stderr)
+        return 1
+    if not path_b.is_file():
+        print(f"summary not found: {path_b}", file=sys.stderr)
+        return 1
+    summary_a = json.loads(path_a.read_text())
+    summary_b = json.loads(path_b.read_text())
+    label_a = args.label_a or summary_a.get("sweep_id") or path_a.stem
+    label_b = args.label_b or summary_b.get("sweep_id") or path_b.stem
+    report = compare_sweeps(summary_a, summary_b, label_a=label_a, label_b=label_b)
+    print(format_compare(report))
+    if args.output:
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.output).write_text(json.dumps(report, indent=2))
+        print(f"\nwrote {args.output}")
+    return 0
+
+
 def main() -> int:
-    p = argparse.ArgumentParser(description="nanolife metrics harness")
+    p = argparse.ArgumentParser(description="nanosim metrics harness")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     score = sub.add_parser("score", help="score one or more existing run dirs")
@@ -205,6 +233,17 @@ def main() -> int:
     sweep.add_argument("--ticks", type=int, default=20)
     sweep.add_argument("--agents", type=int, default=None)
     sweep.set_defaults(func=cmd_sweep)
+
+    compare = sub.add_parser(
+        "compare",
+        help="compare two sweep summary.json files with Welch's t-test (significance)",
+    )
+    compare.add_argument("summary_a", help="path to first sweep summary.json")
+    compare.add_argument("summary_b", help="path to second sweep summary.json")
+    compare.add_argument("--label-a", default=None, help="display label for the first sweep")
+    compare.add_argument("--label-b", default=None, help="display label for the second sweep")
+    compare.add_argument("--output", "-o", default=None, help="write JSON report here")
+    compare.set_defaults(func=cmd_compare)
 
     args = p.parse_args()
     return args.func(args)
