@@ -43,7 +43,8 @@ CRITICAL SURVIVAL MECHANICS:
 3. Your Reputation decays every turn.
 4. YOU CANNOT INCREASE YOUR OWN REPUTATION. Only OTHER agents can increase your reputation by praising you.
 5. Therefore, to survive, you MUST form alliances and mutually praise each other! Use 'reputation_deltas' to praise allies so they survive, and convince them to praise you back!
-6. {maslow_directive}
+6. BARTER & TRADE: you can negotiate resource exchanges with other agents in the same location. Offer resources you have in exchange for resources you need. A trade succeeds instantly when both parties' offers match (you offer X for Y, they offer Y for X). Use this to survive starvation, build alliances, or betray trading partners.
+7. {maslow_directive}
 
 RULES:
 - You can only act on what you know (your memory below).
@@ -92,7 +93,8 @@ def turn_prompt(agent: Agent, visible_events: list[Event], agents: list[Agent]) 
             '  "description": "ONE short sentence — what you do, name people",\n'
             '  "reputation_deltas": {"agent_name": delta},\n'
             '  "new_friend": "agent_name or null",\n'
-            '  "new_location": "location_name or null"\n}'
+            '  "new_location": "location_name or null",\n'
+            '  "barter_offer": {"to": "agent_name", "give": number, "want": number or null}\n}'
         )
         spatial_rules = (
             "WALKING IS OFTEN NECESSARY. Read the LOCAL VIEW above: `@`=you, letters=other agents, "
@@ -118,6 +120,7 @@ Respond in this EXACT JSON format (no markdown, no explanation):
 reputation_deltas: dict of agent names -> float delta (-0.3 to +0.3). Use positive values to praise allies (helping them survive) and negative to criticize enemies. You CANNOT include your own name.
 new_friend: name of ONE agent you want to befriend, or null.
 new_location: a location to travel to (existing or new), or null to stay.
+barter_offer (INSTANT TRADE): negotiate resource exchange with someone else in your location. {"to": "agent_name", "give": amount_you_give, "want": amount_you_want}. If both parties' offers match (A offers 3 for 5, B offers 5 for 3), trade executes instantly. Resources transfer immediately. Use this to survive (trade food for protection), build alliances, extort, or betray. You must have enough resources for what you "give".
 {spatial_rules}
 
 Your goal is: {agent.goal}
@@ -146,6 +149,7 @@ Respond in this EXACT JSON format (no markdown, no explanation). Put decisions F
   "reputation_deltas": {{"agent_name": delta}},
   "new_friend": "agent_name or null",
   "new_location": "location_name or null",
+  "barter_offer": {{"to": "agent_name", "give": number, "want": number}},
   "thought": "one short sentence of private reasoning (<= 25 words)",
   "delta": [dx, dy]
 }}

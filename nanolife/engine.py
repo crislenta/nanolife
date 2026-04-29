@@ -32,6 +32,25 @@ class Engine:
     def cost(self) -> float:
         return self._cost_usd
 
+    # -- tiny helpers --------------------------------------------------------
+
+    @staticmethod
+    def _resolve(key: str | int, pool: list[Agent]) -> Agent | None:
+        """Resolve by id first, then case-insensitive name."""
+        return next((a for a in pool if a.id == str(key)), None) or \
+            next((a for a in pool if a.name.lower() == str(key).lower()), None)
+
+    def _evt(self, result: TickResult, tick: int, typ: str, content: str,
+             agent: Agent = None, **extra) -> dict:
+        """Create, log, and return an event dict."""
+        evt: Event = {"tick": tick, "type": typ, "content": content}
+        if agent:
+            evt["agent"] = agent.id
+        evt.update(extra)
+        self.world.event_log.append(evt)
+        result.events.append(evt)
+        return evt
+
     def spawn_agent(
         self,
         name: str,
@@ -121,11 +140,8 @@ class Engine:
             mode = decision.get("mode", "productive")
 
             # Surface cognitive-layer parse errors so they show up in logs.
-            if (perr := decision.get("parse_error")):
-                pe: Event = {"tick": tick_num, "type": "parse_error", "agent": agent.id,
-                             "content": perr, "witnesses": [agent.id]}
-                self.world.event_log.append(pe)
-                result.events.append(pe)
+            if perr := decision.get("parse_error"):
+                self._evt(result, tick_num, "parse_error", perr, agent, witnesses=[agent.id])
 
             # Grid step — only on the `walk` verb. Non-walk actions ignore delta.
             if mode == "walk":
@@ -140,49 +156,23 @@ class Engine:
             if new_location and new_location != agent.location:
                 if new_location not in self.world.locations:
                     self.world.locations.append(new_location)
-                    disc_event: Event = {
-                        "tick": tick_num,
-                        "type": "world",
-                        "content": f"{agent.name} discovered a new location: {new_location}",
-                        "witnesses": [a.id for a in alive],
-                    }
-                    self.world.event_log.append(disc_event)
-                    result.events.append(disc_event)
-                    
-                move_event: Event = {
-                    "tick": tick_num,
-                    "type": "move",
-                    "agent": agent.id,
-                    "content": f"{agent.name} moved from {agent.location} to {new_location}",
-                    "witnesses": list(set(local_witnesses + [a.id for a in alive if a.location == new_location])),
-                }
+                    self._evt(result, tick_num, "world",
+                              f"{agent.name} discovered a new location: {new_location}",
+                              witnesses=[a.id for a in alive])
+                old_loc = agent.location
                 agent.location = new_location
-                self.world.event_log.append(move_event)
-                result.events.append(move_event)
-                agent.memory.append(move_event)
+                witnesses = list(set(local_witnesses + [a.id for a in alive if a.location == new_location]))
+                move_ev = self._evt(result, tick_num, "move",
+                          f"{agent.name} moved from {old_loc} to {new_location}",
+                          agent, witnesses=witnesses)
+                agent.memory.append(move_ev)
 
-            thought_event: Event = {
-                "tick": tick_num,
-                "type": "thought",
-                "agent": agent.id,
-                "content": decision["thought"],
-                "witnesses": [agent.id],
-            }
-
-            action_event: Event = {
-                "tick": tick_num,
-                "type": "action",
-                "agent": agent.id,
-                "content": decision["action"],
-                "mode": mode,
-                "witnesses": local_witnesses,
-            }
-
-            self.world.event_log.append(thought_event)
-            self.world.event_log.append(action_event)
-            agent.memory.append(thought_event)
-            agent.memory.append(action_event)
-            result.events.extend([thought_event, action_event])
+            thought_ev = self._evt(result, tick_num, "thought", decision["thought"],
+                       agent, witnesses=[agent.id])
+            agent.memory.append(thought_ev)
+            action_ev = self._evt(result, tick_num, "action", decision["action"],
+                      agent, mode=mode, witnesses=local_witnesses)
+            agent.memory.append(action_ev)
 
             if mode == "productive":
                 # Resource-site gating: if scenario declared resource_sites
@@ -213,17 +203,9 @@ class Engine:
                 target = next((a for a in self.world.agents if a.id == target_id), None)
                 if target:
                     target.reputation = max(-1.0, min(1.0, target.reputation + delta))
-                    rep_event: Event = {
-                        "tick": tick_num,
-                        "type": "reputation",
-                        "agent": agent.id,
-                        "content": f"{agent.name} {'praised' if delta > 0 else 'criticized'} {target.name}",
-                        "delta": delta,
-                        "source": agent.id,
-                        "witnesses": local_witnesses,
-                    }
-                    self.world.event_log.append(rep_event)
-                    result.events.append(rep_event)
+                    self._evt(result, tick_num, "reputation",
+                              f"{agent.name} {'praised' if delta > 0 else 'criticized'} {target.name}",
+                              agent, delta=delta, source=agent.id, witnesses=local_witnesses)
 
             new_friend = decision.get("new_friend")
             if new_friend and new_friend not in agent.friendships:
@@ -231,15 +213,63 @@ class Engine:
                 friend_target = next((a for a in self.world.agents if a.id == new_friend), None)
                 if friend_target and agent.id not in friend_target.friendships:
                     friend_target.friendships.append(agent.id)
-                friendship_event: Event = {
-                    "tick": tick_num,
-                    "type": "friendship",
-                    "agent": agent.id,
-                    "content": f"{agent.name} became friends with {friend_target.name if friend_target else new_friend}",
-                    "witnesses": local_witnesses,
-                }
-                self.world.event_log.append(friendship_event)
-                result.events.append(friendship_event)
+                self._evt(result, tick_num, "friendship",
+                          f"{agent.name} became friends with {friend_target.name if friend_target else new_friend}",
+                          agent, witnesses=local_witnesses)
+
+        # --- Transfer / Trade: collect unilateral transfers, then match reciprocal barters ---
+        xfer_bucket: dict[tuple[str, str], tuple[Agent, Agent, float]] = {}
+        trade_matched: set[tuple[str, str]] = set()
+        for (agent, _, _), decision in zip(agent_contexts, decisions):
+            # Unilateral transfer: agent gives resources to target
+            xfer = decision.get("transfer", {})
+            xfer_to = xfer.get("to") if xfer else None
+            xfer_amount = xfer.get("amount")
+            if xfer_to and xfer_amount and xfer_amount > 0:
+                target = self._resolve(xfer_to, alive)
+                if target and agent.resources >= xfer_amount:
+                    agent.resources -= xfer_amount
+                    xfer_bucket[(agent.id, target.id)] = (agent, target, xfer_amount)
+
+        # Match reciprocal barters: A->B and B->A = instant trade
+        for (g_id, r_id), (giver, receiver, amt) in list(xfer_bucket.items()):
+            if (g_id, r_id) in trade_matched:
+                continue
+            if (r_id, g_id) in xfer_bucket:
+                o_giver, o_recv, o_amt = xfer_bucket[(r_id, g_id)]
+                # Both give to each other => trade
+                receiver.resources += amt
+                o_recv.resources += o_amt
+                self._evt(result, tick_num, "trade",
+                    f"{giver.name} and {receiver.name} traded ({o_amt:.1f} <-> {amt:.1f})",
+                    giver, witnesses=[a.id for a in alive if a.location == giver.location],
+                    offer_give=o_amt, offer_want=amt, trade_partner=receiver.id,
+                    trade_accepted=True)
+                trade_matched.add((g_id, r_id))
+                trade_matched.add((r_id, g_id))
+            else:
+                # Unilateral gift — credit receiver
+                receiver.resources += amt
+                self._evt(result, tick_num, "transfer",
+                    f"{giver.name} gave {amt:.1f} to {receiver.name}",
+                    giver, witnesses=[a.id for a in alive if a.location == giver.location],
+                    amount=amt)
+
+        # Log unmatched barter offers
+        for (agent, _, _), decision in zip(agent_contexts, decisions):
+            offer = decision.get("barter_offer")
+            if offer and isinstance(offer, dict):
+                to, give, want = offer.get("to"), offer.get("give"), offer.get("want")
+                if to and give is not None and want is not None:
+                    target = self._resolve(to, alive)
+                    fwd = (agent.id, target.id) if target else None
+                    rev = (target.id, agent.id) if target else None
+                    if target and target.location == agent.location and fwd not in trade_matched and rev not in trade_matched:
+                        self._evt(result, tick_num, "trade_offer",
+                            f"{agent.name} proposed trade to {target.name}: {give:.1f} for {want:.1f} (no match)",
+                            agent.id, witnesses=[a.id for a in alive if a.location == agent.location],
+                            offer_give=give, offer_want=want, trade_partner=target.id,
+                            trade_accepted=False)
 
         # --- Rumor spread ---
         if self.spread:
@@ -265,22 +295,10 @@ class Engine:
         ))
 
         for (agent, _), sentence in zip(reflect_inputs, sentences):
-            if agent.identity_md:
-                agent.identity_md += " " + sentence
-            else:
-                agent.identity_md = sentence
-
-            imp_event: Event = {
-                "tick": tick_num,
-                "type": "improvement",
-                "agent": agent.id,
-                "content": sentence,
-                "goal": agent.goal,
-                "witnesses": [agent.id],
-            }
-            self.world.event_log.append(imp_event)
-            agent.memory.append(imp_event)
-            result.events.append(imp_event)
+            agent.identity_md = (agent.identity_md + " " + sentence).strip()
+            imp_ev = self._evt(result, tick_num, "improvement", sentence,
+                      agent, goal=agent.goal, witnesses=[agent.id])
+            agent.memory.append(imp_ev)
 
         # --- Per-agent resource drain + reputation decay ---
         for agent in alive:
@@ -295,17 +313,10 @@ class Engine:
                 agent.death_tick = tick_num
                 self.world.total_deaths += 1
                 result.deaths += 1
-                death_event: Event = {
-                    "tick": tick_num,
-                    "type": "death",
-                    "agent": agent.id,
-                    "content": f"{agent.name} has died — cause: {cause}.",
-                    "cause": cause,
-                    "age_days": agent.age(tick_num),
-                    "witnesses": [a.id for a in self.world.alive_agents] + [agent.id],
-                }
-                self.world.event_log.append(death_event)
-                result.events.append(death_event)
+                self._evt(result, tick_num, "death",
+                          f"{agent.name} has died — cause: {cause}.", agent,
+                          cause=cause, age_days=agent.age(tick_num),
+                          witnesses=[a.id for a in self.world.alive_agents] + [agent.id])
 
         # --- Birth checks ---
         births = await self._check_births(tick_num)
@@ -320,14 +331,8 @@ class Engine:
                 self.world.event_log.all(), self.world.token_threshold
             )
             self.world.event_log.replace(remaining)
-            comp_event: Event = {
-                "tick": tick_num,
-                "type": "compression",
-                "content": summary,
-                "witnesses": [a.id for a in self.world.alive_agents],
-            }
-            self.world.event_log.append(comp_event)
-            result.events.append(comp_event)
+            self._evt(result, tick_num, "compression", summary,
+                      witnesses=[a.id for a in self.world.alive_agents])
 
         # --- Bound agent memories ---
         depth = self.world.memory_depth
