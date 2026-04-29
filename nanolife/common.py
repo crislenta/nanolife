@@ -28,6 +28,11 @@ class Event(TypedDict, total=False):
     goal: str
     witnesses: list[str]
     resources_changed: float
+    # Trade fields
+    offer_give: float
+    offer_want: float
+    trade_partner: str
+    trade_accepted: bool
 
 
 @dataclass
