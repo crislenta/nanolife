@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# quickstart.sh — One-command setup and demo run for nanolife.
+# quickstart.sh — One-command setup and demo run for nanosim.
 #
 # Installs Python dependencies and runs a short plain-text simulation
 # so you can verify everything works before configuring an API key.
 set -e
 
 echo "╔═══════════════════════════════════════╗"
-echo "║  nanolife — quickstart                ║"
+echo "║  nanosim — quickstart                ║"
 echo "╚═══════════════════════════════════════╝"
 echo ""
 

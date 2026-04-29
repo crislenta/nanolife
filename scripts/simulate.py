@@ -1,4 +1,4 @@
-"""Main entry point — run a nanolife simulation from the command line.
+"""Main entry point — run a nanosim simulation from the command line.
 
 Parses CLI args, loads a scenario, wires up the engine with LLM providers,
 and renders output via the map-centered renderer (TTY) or plain text (CI/pipe).
@@ -24,10 +24,10 @@ if _env_path.exists():
             if value and key.strip() not in os.environ:
                 os.environ[key.strip()] = value.strip().strip("\"'")
 
-from nanolife.common import TickResult
-from nanolife.defaults.cognitive import LLMCognitive
-from nanolife.engine import Engine
-from nanolife.world import WorldState
+from nanosim.common import TickResult
+from nanosim.defaults.cognitive import LLMCognitive
+from nanosim.engine import Engine
+from nanosim.world import WorldState
 
 NAMES = [
     "Ada", "Bjorn", "Cora", "Dmitri", "Elena", "Farid", "Gaia", "Hiro",
@@ -38,7 +38,7 @@ NAMES = [
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="nanolife — artificial life simulation")
+    p = argparse.ArgumentParser(description="nanosim — artificial life simulation")
     p.add_argument("--agents", type=int, default=None, help="Number of starting agents (default: all for scenario, 10 otherwise)")
     p.add_argument("--ticks", type=int, default=50, help="Number of ticks to simulate")
     p.add_argument("--harshness", type=float, default=0.5, help="World harshness 0.0-1.0")
@@ -90,12 +90,12 @@ async def main() -> None:
 
     scenario = None
     if args.scenario:
-        from nanolife.scenario_loader import load_scenario
+        from nanosim.scenario_loader import load_scenario
         scenario = load_scenario(args.scenario)
 
     harshness = scenario.harshness if scenario else args.harshness
     tick_unit = scenario.tick_unit if scenario else args.tick_unit
-    scenario_name = scenario.name if scenario else "nanolife"
+    scenario_name = scenario.name if scenario else "nanosim"
 
     world = WorldState.create(
         harshness=harshness,
@@ -118,8 +118,8 @@ async def main() -> None:
         base_url=provider["base_url"],
     )
 
-    from nanolife.defaults.spread import RandomSpread
-    from nanolife.defaults.compression import LLMCompression
+    from nanosim.defaults.spread import RandomSpread
+    from nanosim.defaults.compression import LLMCompression
     spread = RandomSpread()
     compression = LLMCompression(
         model=provider["model"],
@@ -200,7 +200,7 @@ async def main() -> None:
     # grid movement) regardless of which renderer the user picks.
     render_worldmap = None
     if scenario and scenario.world:
-        from nanolife.worldmap import Tile, WorldMap
+        from nanosim.worldmap import Tile, WorldMap
         wdef = scenario.world
         raw_map = wdef.get("map", "")
         if isinstance(raw_map, list):
@@ -217,7 +217,7 @@ async def main() -> None:
 
     try:
         if use_render:
-            from nanolife.render import render as render_frame
+            from nanosim.render import render as render_frame
             rich_console = None
             event_lines: list[str] = []
 
@@ -248,7 +248,7 @@ async def main() -> None:
             results = await engine.run(args.ticks, on_tick=on_tick_render)
             elapsed = time.time() - t0
         else:
-            print(f"nanolife · {scenario_name} | {n} agents | {args.ticks} ticks | harshness {harshness} | {tick_unit} ticks")
+            print(f"nanosim · {scenario_name} | {n} agents | {args.ticks} ticks | harshness {harshness} | {tick_unit} ticks")
             print(f"Logs → {run_dir}")
             print("─" * 60)
 
@@ -302,7 +302,7 @@ async def main() -> None:
         print(f"Logs: {run_dir}")
 
         if not args.no_report:
-            from nanolife.postmortem import run_postmortem
+            from nanosim.postmortem import run_postmortem
             try:
                 await run_postmortem(
                     run_dir=run_dir,

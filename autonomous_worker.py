@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Autonomous 24/7 work loop for nanolife.
+Autonomous 24/7 work loop for nanosim.
 
 Cycles through:
 1. Run experiments (simulations with different parameters)
@@ -44,7 +44,7 @@ class AutonomousWorker:
     
     def run_simulation(self, scenario: str, agents: int, ticks: int, 
                        model: str = None, use_openrouter: bool = False) -> Dict[str, Any]:
-        """Run a nanolife simulation and return results."""
+        """Run a nanosim simulation and return results."""
         self.log(f"Running simulation: {scenario} with {agents} agents, {ticks} ticks")
         
         # Build command
@@ -226,7 +226,7 @@ class AutonomousWorker:
                        implementation_results: List[Dict] = None) -> str:
         """Generate daily report summary."""
         report = f"""
-# nanolife Autonomous Work Report — Cycle {cycle_num}
+# nanosim Autonomous Work Report — Cycle {cycle_num}
 **Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ## Experiments Run
@@ -270,7 +270,7 @@ class AutonomousWorker:
             # Queue email for Nebula to send
             email_data = {
                 "to": os.getenv("REPORT_EMAIL", "cris@thelifesim.com"),
-                "subject": f"nanolife Daily Report — {datetime.now().strftime('%Y-%m-%d')}",
+                "subject": f"nanosim Daily Report — {datetime.now().strftime('%Y-%m-%d')}",
                 "body": report,
                 "timestamp": datetime.now().isoformat()
             }

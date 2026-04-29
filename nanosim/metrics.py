@@ -1,4 +1,4 @@
-"""Standardized reproducible metrics for nanolife runs.
+"""Standardized reproducible metrics for nanosim runs.
 
 This module is pure Python and has no runtime dependencies on LLMs or the
 simulation engine — it reads a run's ``world.jsonl`` and returns a flat

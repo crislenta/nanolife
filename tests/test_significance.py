@@ -17,7 +17,7 @@ import math
 
 import pytest
 
-from nanolife.metrics import (
+from nanosim.metrics import (
     HEADLINE_METRICS,
     compare_sweeps,
     format_compare,

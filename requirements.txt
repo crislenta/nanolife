@@ -1,4 +1,4 @@
-# requirements.txt — Python dependencies for nanolife.
+# requirements.txt — Python dependencies for nanosim.
 openai
 rich
 matplotlib

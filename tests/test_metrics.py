@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from nanolife.metrics import (
+from nanosim.metrics import (
     aggregate_runs,
     compute_metrics,
     cooperation_index,

@@ -49,12 +49,12 @@ import asyncio
 
 import pytest
 
-from nanolife.common import Agent
-from nanolife.defaults.cognitive import LLMCognitive
-from nanolife.engine import Engine
-from nanolife.interfaces import CognitiveFunction
-from nanolife.world import WorldState
-from nanolife.worldmap import BLOCKED_TERRAINS, Tile, WorldMap
+from nanosim.common import Agent
+from nanosim.defaults.cognitive import LLMCognitive
+from nanosim.engine import Engine
+from nanosim.interfaces import CognitiveFunction
+from nanosim.world import WorldState
+from nanosim.worldmap import BLOCKED_TERRAINS, Tile, WorldMap
 
 
 # ---------------------------------------------------------------------------

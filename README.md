@@ -1,6 +1,6 @@
-# nanolife
+# nanosim
 
-![nanolife](nanolife.png)
+![nanosim](nanosim.png)
 
 <p align="center">
   <img src="charts/chart_alignment.png" width="32%" />
@@ -11,24 +11,24 @@
 
 ---
 
-> **Mission.** nanolife is a minimalist real-time implementation of evolutionary biology and social dynamics with LLMs, where agents have full free-will and mimic the being's instinct to live and to act.
+> **Mission.** nanosim is a minimalist real-time implementation of evolutionary biology and social dynamics with LLMs, where agents have full free-will and mimic the being's instinct to live and to act.
 
 The best Multi-Agent Simulator $1 can buy. Free-will is the design constraint: agents are never given a menu of allowed actions, never scripted, never reward-shaped. On every tick they observe, feel their needs, and choose what to do in natural language. Evolution, economy, and society are what emerges when many such wills run in parallel under scarcity.
 
-nanolife is the smallest multi-agent LLM-based Artificial Life harness — a modular & paralel arhitecture with implementations of Darwinian selection, Maslow's hierarchy of needs, Malthusian economics, Lamarckian inheritance. ~350 lines of code in the main simulation engine `engine.py`. You can theoretically run this simulation ad infinitum. A simulation run costs from $0.1 (eg. gpt-oss-120b) to $5 (eg. Gemini-2.5-flash) and more (eg. Calude-Opus-4.6). The heartbeat is a configurable parameter (eg. '4h', 'day', etc) representing the time passage. No vector databases, no embeddings, just a minimalist implementation with 7 rules: scarcity, harshness, reputation, heredity, compression, local observation, event log.
+nanosim is the smallest multi-agent LLM-based Artificial Life harness — a modular & paralel arhitecture with implementations of Darwinian selection, Maslow's hierarchy of needs, Malthusian economics, Lamarckian inheritance. ~350 lines of code in the main simulation engine `engine.py`. You can theoretically run this simulation ad infinitum. A simulation run costs from $0.1 (eg. gpt-oss-120b) to $5 (eg. Gemini-2.5-flash) and more (eg. Calude-Opus-4.6). The heartbeat is a configurable parameter (eg. '4h', 'day', etc) representing the time passage. No vector databases, no embeddings, just a minimalist implementation with 7 rules: scarcity, harshness, reputation, heredity, compression, local observation, event log.
 
 - **nanochat** by <a href="https://x.com/karpathy">karpathy</a> distilled language model training to its irreducible core.
 - **Conway's Game of Life** distilled life to its mathematical essence.
-- **nanolife** distills Artificial Life with LLMs to its irreducible core.
+- **nanosim** distills Artificial Life with LLMs to its irreducible core.
 
 For fun, there are multiple scenarios: `nanothrones`, `nanoception`, `nanomatrix`, `nanorings`, `nanozombie`, `nanopoter`
 
 <p align="center">
-  <img src="nanolife-terminal.png" width='80%' />
-  <br><em>Figure 2 — nanolife terminal</em>
+  <img src="nanosim-terminal.png" width='80%' />
+  <br><em>Figure 2 — nanosim terminal</em>
 </p>
 
-> **Disclaimer:** The purpose of nanolife is to build a minimal implementation of LLM-based Artificial Life. This build can be further optimized. The simulation needs careful balancing and exposes the main weakness of Large Language Models: LLMs are semantic engines and struggle with understanding numerical values. This holds true especially for smaller models like gpt-oss-120b, where the scenarios often collapse to mass extinction (see Figure 3). This leads to agents who occasionally do nonsensical things.
+> **Disclaimer:** The purpose of nanosim is to build a minimal implementation of LLM-based Artificial Life. This build can be further optimized. The simulation needs careful balancing and exposes the main weakness of Large Language Models: LLMs are semantic engines and struggle with understanding numerical values. This holds true especially for smaller models like gpt-oss-120b, where the scenarios often collapse to mass extinction (see Figure 3). This leads to agents who occasionally do nonsensical things.
 
 <p align="center">
   <img src="charts/groq-chart_survival.png" width="49%" />
@@ -39,7 +39,7 @@ For fun, there are multiple scenarios: `nanothrones`, `nanoception`, `nanomatrix
 ## Quickstart
 
 ```bash
-git clone https://github.com/cris/nanolife.git && cd nanolife
+git clone https://github.com/cris/nanosim.git && cd nanosim
 
 pip install -r requirements.txt
 
@@ -274,8 +274,8 @@ to ≤5e-5 on p and ≤1e-3 on t (see `tests/test_significance.py`).
 ## File Structure
 
 ```
-nanolife/
-├── nanolife/
+nanosim/
+├── nanosim/
 │   ├── engine.py          # THE simulation loop (~350 lines, parallel LLM calls)
 │   ├── common.py          # Agent dataclass, Event type, utilities
 │   ├── world.py           # Clock, EventLog, WorldState
@@ -320,7 +320,7 @@ class SpreadFunction:        # how rumors travel → default: random neighbor + 
 class Scenario:              # JSON world definition → primary user surface
 ```
 
-If you have to read `engine.py` to fork nanolife, the abstraction failed.
+If you have to read `engine.py` to fork nanosim, the abstraction failed.
 
 ## Cost
 
@@ -341,9 +341,9 @@ Groq is free for low-volume usage. Estimated costs for larger runs:
 
 ## Future Work
 
-nanolife is far from complete in this current state, and can be advanced on multiple fronts:
+nanosim is far from complete in this current state, and can be advanced on multiple fronts:
 
-- **PyPI package** — `pip install nanolife` with a CLI entry point so running a simulation is a one-liner.
+- **PyPI package** — `pip install nanosim` with a CLI entry point so running a simulation is a one-liner.
 - **Spatial awareness** — Replace flat location lists with a coordinate graph so agents reason about distance, travel time, and line-of-sight. This unlocks territorial behavior and migration.
 - **Inter-agent trade & negotiation** — Agents currently cooperate or compete; a simple barter protocol would let resource scarcity drive alliances and betrayal organically.
 - **Benchmark suite** — `scripts/metrics.py` ships a reproducible harness: `score <run_dir>` computes survival rate, cooperation index, narrative coherence, action diversity, and emergence index from any run's `world.jsonl`; `sweep --scenarios ... --seeds ...` runs a grid and aggregates with mean+stdev; `compare a.json b.json` runs Welch's t-test + Cohen's *d* per scenario × metric and flags significant differences at p<0.05. Pure Python, zero LLM. (More scenarios still welcome.)

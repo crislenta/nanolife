@@ -27,14 +27,14 @@ if _env_path.exists():
             if value and key.strip() not in os.environ:
                 os.environ[key.strip()] = value.strip().strip("\"'")
 
-from nanolife.charts import generate_all_charts
-from nanolife.common import TickResult
-from nanolife.defaults.cognitive import LLMCognitive
-from nanolife.defaults.compression import LLMCompression
-from nanolife.defaults.spread import RandomSpread
-from nanolife.engine import Engine
-from nanolife.postmortem import analyze, _load_events
-from nanolife.world import WorldState
+from nanosim.charts import generate_all_charts
+from nanosim.common import TickResult
+from nanosim.defaults.cognitive import LLMCognitive
+from nanosim.defaults.compression import LLMCompression
+from nanosim.defaults.spread import RandomSpread
+from nanosim.engine import Engine
+from nanosim.postmortem import analyze, _load_events
+from nanosim.world import WorldState
 
 
 PROVIDERS = {
@@ -54,7 +54,7 @@ PROVIDERS = {
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="nanolife benchmark — compare two LLM providers")
+    p = argparse.ArgumentParser(description="nanosim benchmark — compare two LLM providers")
     p.add_argument("--scenario", type=str, default="nanothrones", help="Scenario to run")
     p.add_argument("--ticks", type=int, default=80, help="Ticks per run (default 80 for speed)")
     p.add_argument("--agents", type=int, default=None, help="Number of agents (default: all from scenario)")
@@ -77,7 +77,7 @@ async def run_single(
         print(f"  [SKIP] {prov['label']} — {prov['env_key']} not set")
         return {"skipped": True, "provider": prov["label"]}
 
-    from nanolife.scenario_loader import load_scenario
+    from nanosim.scenario_loader import load_scenario
     scenario = load_scenario(scenario_name)
 
     run_dir = bench_dir / provider_key

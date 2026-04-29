@@ -1,5 +1,5 @@
 
-# nanolife Autonomous Work Report — Cycle 1
+# nanosim Autonomous Work Report — Cycle 1
 **Generated:** 2026-04-20 17:15:24
 
 ## Experiments Run

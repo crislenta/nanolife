@@ -1,4 +1,4 @@
-"""Reproducible metrics harness for nanolife.
+"""Reproducible metrics harness for nanosim.
 
 Two modes:
 
@@ -35,7 +35,7 @@ from pathlib import Path
 _REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO))
 
-from nanolife.metrics import (
+from nanosim.metrics import (
     aggregate_runs,
     compare_sweeps,
     compute_metrics,
@@ -219,7 +219,7 @@ def cmd_compare(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="nanolife metrics harness")
+    p = argparse.ArgumentParser(description="nanosim metrics harness")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     score = sub.add_parser("score", help="score one or more existing run dirs")

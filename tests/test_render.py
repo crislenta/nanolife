@@ -1,4 +1,4 @@
-"""Smoke tests for nanolife.render — the map-centered renderer.
+"""Smoke tests for nanosim.render — the map-centered renderer.
 
 Locks in the layout contract from the refactor that made render.py the
 sole renderer (terminal.py deleted): map dominates the center, roster
@@ -6,9 +6,9 @@ on the left, status on the right, event log along the bottom.
 """
 from __future__ import annotations
 
-from nanolife.common import Agent
-from nanolife.render import render
-from nanolife.worldmap import Tile, WorldMap
+from nanosim.common import Agent
+from nanosim.render import render
+from nanosim.worldmap import Tile, WorldMap
 
 
 def _make_agent(name: str, position: tuple[int, int]) -> Agent:

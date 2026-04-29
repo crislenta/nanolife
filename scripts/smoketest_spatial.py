@@ -10,11 +10,11 @@ from __future__ import annotations
 
 import asyncio
 
-from nanolife.common import Agent, Event
-from nanolife.engine import Engine
-from nanolife.interfaces import CognitiveFunction
-from nanolife.world import WorldState
-from nanolife.worldmap import Tile, WorldMap
+from nanosim.common import Agent, Event
+from nanosim.engine import Engine
+from nanosim.interfaces import CognitiveFunction
+from nanosim.world import WorldState
+from nanosim.worldmap import Tile, WorldMap
 
 
 class ScriptedCognitive(CognitiveFunction):
