@@ -59,7 +59,14 @@ python -m scripts.simulate --scenario=nanothrones --agents=15
    ```
    OPENROUTER_API_KEY=sk-or-v1-your-key-here
    ```
-4. Run a simulation. That's it.
+4. (Optional) Configure Google Vertex AI:
+   ```
+   VERTEX_PROJECT_ID=your-gcp-project-id
+   VERTEX_LOCATION=us-central1
+   # Optional if gcloud auth is unavailable in your environment:
+   # VERTEX_ACCESS_TOKEN=ya29....
+   ```
+5. Run a simulation. That's it.
    ```
    python -m scripts.simulate
    ```
@@ -76,8 +83,12 @@ python -m scripts.simulate [OPTIONS]
   --scenario NAME     Load a scenario from scenarios/
   --model MODEL       Model for cognition (default depends on provider)
   --report-model M    Model for postmortem report (default depends on provider)
+  --seed N            Random seed for reproducible runs (default: 42)
   --no-report         Skip postmortem report generation
+  --x-artifacts       Generate X-ready metric card, replay GIF, and thread draft
+  --x-max-moments N   Max highlighted moments in X artifacts (default: 12)
   --open-router       Use OpenRouter (Gemini 2.5 Flash) instead of Groq
+  --vertex            Use Vertex AI OpenAI-compatible endpoint
 ```
 
 Everything happens in the terminal (Figure 2). A fullscreen Rich dashboard shows the simulation live: world stats, scrolling event feed, agent roster, spotlight, and emergence index.
@@ -106,16 +117,54 @@ python -m scripts.simulate --scenario=nanothrones --open-router
 
 # OpenRouter with a specific model
 python -m scripts.simulate --open-router --model google/gemini-2.0-flash-001
+
+# Vertex AI (uses gcloud auth token or VERTEX_ACCESS_TOKEN)
+python -m scripts.simulate --scenario=nanothrones --vertex --model google/gemini-2.5-flash
+
+# Deterministic run + social-ready outputs
+python -m scripts.simulate --scenario=nanothrones --ticks=30 --seed=7 --x-artifacts
 ```
 
 ### Providers
 
-| Provider   | Flag            | Default Model             | API Key              |
-| ---------- | --------------- | ------------------------- | -------------------- |
-| Groq       | _(default)_     | `openai/gpt-oss-120b`     | `GROQ_API_KEY`       |
+| Provider   | Flag            | Default Model             | Auth / Key |
+| ---------- | --------------- | ------------------------- | ---------- |
+| Groq       | _(default)_     | `openai/gpt-oss-120b`     | `GROQ_API_KEY` |
 | OpenRouter | `--open-router` | `google/gemini-2.5-flash` | `OPENROUTER_API_KEY` |
+| Vertex AI  | `--vertex`      | `google/gemini-2.5-flash` | `VERTEX_PROJECT_ID` + gcloud auth token (or `VERTEX_ACCESS_TOKEN`) |
 
 Override the model with `--model` on either provider. Any OpenAI-compatible model string works.
+
+## X-ready Artifacts (card + replay + thread)
+
+To make runs instantly shareable on X, generate artifacts from any completed run:
+
+```bash
+# During simulation:
+python -m scripts.simulate --scenario=nanothrones --ticks=30 --seed=7 --x-artifacts
+
+# Or from an existing run folder:
+python -m scripts.x_artifacts --run-dir logs/runs/<run_id>
+```
+
+Outputs:
+- `x_metric_card.png` — one-image summary (ticks, pop delta, emergence, top moments)
+- `x_replay.gif` — short highlight replay
+- `x_thread.md` — draft post/thread with key numbers + moments
+- `x_summary.json` — machine-readable summary for tooling/automation
+
+## Reproducible Scenario Packs
+
+Scenario pack files live in `scenarios/packs/`:
+- `research_pack.json` — broader cross-scenario evaluation
+- `drama_pack.json` — high-drama runs for content + demos
+
+Run a pack:
+
+```bash
+python -m scripts.run_pack --pack scenarios/packs/research_pack.json
+python -m scripts.run_pack --pack scenarios/packs/drama_pack.json --x-artifacts
+```
 
 ## Fun Scenarios
 
@@ -282,7 +331,7 @@ nanosim/
 │   ├── interfaces.py      # CognitiveFunction, CompressionFunction, SpreadFunction, Scenario
 │   ├── prompts.py         # System + turn + reflection prompt templates
 │   ├── logger.py          # Append-only JSONL writer
-│   ├── terminal.py        # Rich fullscreen dashboard
+│   ├── render.py          # Rich map-centered dashboard renderer
 │   ├── postmortem.py      # Emergence analysis + HTML report
 │   ├── charts.py          # Matplotlib chart generation
 │   ├── scenario_loader.py # JSON scenario loader
