@@ -16,7 +16,7 @@ pip3 install -q openai rich matplotlib numpy
 
 # Run a simulation
 echo "→ Running simulation (10 agents, 30 ticks)..."
-NANOLIFE_PLAIN=1 python3 -m scripts.simulate --agents=10 --ticks=30
+python3 -m scripts.simulate --agents=10 --ticks=30
 
 echo ""
 echo "Done! For LLM-powered simulation, set OPENROUTER_API_KEY."

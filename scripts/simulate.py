@@ -8,6 +8,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
+import random
+import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
@@ -41,18 +43,65 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="nanosim — artificial life simulation")
     p.add_argument("--agents", type=int, default=None, help="Number of starting agents (default: all for scenario, 10 otherwise)")
     p.add_argument("--ticks", type=int, default=50, help="Number of ticks to simulate")
+    p.add_argument("--seed", type=int, default=42, help="Random seed for reproducible runs")
     p.add_argument("--harshness", type=float, default=0.5, help="World harshness 0.0-1.0")
     p.add_argument("--tick-unit", type=str, default="4h", help="Tick unit (minute/hour/4h/day/week)")
     p.add_argument("--scenario", type=str, default="nanothrones", help="Scenario name to load")
     p.add_argument("--model", type=str, default=None, help="Model for cognition (default depends on provider)")
     p.add_argument("--report-model", type=str, default=None, help="Model for postmortem report (default depends on provider)")
     p.add_argument("--no-report", action="store_true", help="Skip postmortem report generation")
+    p.add_argument("--x-artifacts", action="store_true", help="Generate X-ready card/GIF/thread artifacts after the run")
+    p.add_argument("--x-max-moments", type=int, default=12, help="Max highlighted moments to include in X artifacts")
     p.add_argument("--open-router", action="store_true", help="Use OpenRouter with Gemini instead of Groq")
+    p.add_argument("--vertex", action="store_true", help="Use Google Vertex AI OpenAI-compatible endpoint")
     return p.parse_args()
+
+
+def _resolve_vertex_access_token() -> str:
+    token = os.environ.get("VERTEX_ACCESS_TOKEN", "").strip() or os.environ.get("GOOGLE_OAUTH_ACCESS_TOKEN", "").strip()
+    if token:
+        return token
+    try:
+        return subprocess.check_output(
+            ["gcloud", "auth", "print-access-token"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return ""
 
 
 def _resolve_provider(args: argparse.Namespace) -> dict[str, str]:
     """Return api_key, base_url, model, and report_model based on CLI flags."""
+    if args.open_router and args.vertex:
+        print("[FATAL] --open-router and --vertex are mutually exclusive.", file=sys.stderr)
+        raise RuntimeError("choose one provider")
+
+    if args.vertex:
+        project = os.environ.get("VERTEX_PROJECT_ID", "").strip() or os.environ.get("GCP_PROJECT_ID", "").strip()
+        location = os.environ.get("VERTEX_LOCATION", "").strip() or os.environ.get("GCP_LOCATION", "").strip() or "us-central1"
+        if not project:
+            print("[FATAL] Set VERTEX_PROJECT_ID (or GCP_PROJECT_ID) for --vertex.", file=sys.stderr)
+            raise RuntimeError("VERTEX_PROJECT_ID not set")
+        api_key = _resolve_vertex_access_token()
+        if not api_key:
+            print(
+                "[FATAL] No Vertex access token. Set VERTEX_ACCESS_TOKEN or authenticate gcloud (`gcloud auth application-default login`).",
+                file=sys.stderr,
+            )
+            raise RuntimeError("Vertex access token not available")
+        default_model = "google/gemini-2.5-flash"
+        base_url = os.environ.get("VERTEX_OPENAI_BASE_URL", "").strip() or (
+            f"https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/endpoints/openapi"
+        )
+        return {
+            "api_key": api_key,
+            "base_url": base_url,
+            "model": args.model or default_model,
+            "report_model": args.report_model or default_model,
+            "provider_label": "Vertex AI",
+        }
+
     if args.open_router:
         api_key = os.environ.get("OPENROUTER_API_KEY", "")
         if not api_key:
@@ -83,6 +132,7 @@ def _resolve_provider(args: argparse.Namespace) -> dict[str, str]:
 
 async def main() -> None:
     args = parse_args()
+    random.seed(args.seed)
     provider = _resolve_provider(args)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -188,6 +238,7 @@ async def main() -> None:
     if "--scenario" not in sys.argv and "--ticks" not in sys.argv and "--agents" not in sys.argv:
         print(f"\033[92mSimulation defaulted to scenario {args.scenario}, ticks {args.ticks}, and {n} agents from the scenario.\033[0m")
     print(f"Calculated {args.ticks} turns for {n} agents · {tick_unit} ticks · {provider['provider_label']} · estimated cost ${est_cost:.2f}")
+    print(f"Seed: {args.seed}")
 
     # Renderer mode: map-centered Rich renderer when stdout is a TTY,
     # plain stdout fallback for CI / piped output.
@@ -313,6 +364,16 @@ async def main() -> None:
                 )
             except Exception as e:
                 print(f"  [postmortem] Error: {e}")
+
+        if args.x_artifacts:
+            try:
+                from nanosim.viral import generate_x_artifacts
+                outputs = generate_x_artifacts(run_dir=run_dir, max_moments=args.x_max_moments)
+                print("  X artifacts:")
+                for key, path in outputs.items():
+                    print(f"    - {key}: {path}")
+            except Exception as e:
+                print(f"  [x-artifacts] Error: {e}")
 
 
 if __name__ == "__main__":

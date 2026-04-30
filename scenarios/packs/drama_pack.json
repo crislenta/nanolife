@@ -1,0 +1,29 @@
+{
+  "name": "drama_pack",
+  "description": "High-drama reproducible scenario pack for social media comparisons.",
+  "default_ticks": 40,
+  "default_agents": 12,
+  "entries": [
+    {
+      "scenario": "nanothrones",
+      "seed": 11,
+      "ticks": 40,
+      "agents": 12,
+      "label": "court intrigue baseline"
+    },
+    {
+      "scenario": "nanozombie",
+      "seed": 23,
+      "ticks": 40,
+      "agents": 10,
+      "label": "extreme scarcity stress test"
+    },
+    {
+      "scenario": "nanomatrix",
+      "seed": 37,
+      "ticks": 40,
+      "agents": 10,
+      "label": "belief divergence setup"
+    }
+  ]
+}

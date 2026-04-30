@@ -10,6 +10,7 @@ import argparse
 import asyncio
 import json
 import os
+import subprocess
 import sys
 import time
 from collections import defaultdict
@@ -50,6 +51,12 @@ PROVIDERS = {
         "model": "google/gemini-2.5-flash",
         "label": "OpenRouter · Gemini 2.5 Flash",
     },
+    "vertex": {
+        "env_key": "VERTEX_ACCESS_TOKEN",
+        "base_url": "",
+        "model": "google/gemini-2.5-flash",
+        "label": "Vertex AI · Gemini 2.5 Flash",
+    },
 }
 
 
@@ -59,7 +66,28 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--ticks", type=int, default=80, help="Ticks per run (default 80 for speed)")
     p.add_argument("--agents", type=int, default=None, help="Number of agents (default: all from scenario)")
     p.add_argument("--tick-unit", type=str, default=None, help="Override tick unit")
+    p.add_argument(
+        "--providers",
+        type=str,
+        default="groq,openrouter",
+        help="Comma-separated providers from: groq,openrouter,vertex",
+    )
+    p.add_argument("--seed", type=int, default=42, help="Random seed for reproducible benchmark runs")
     return p.parse_args()
+
+
+def _resolve_vertex_access_token() -> str:
+    token = os.environ.get("VERTEX_ACCESS_TOKEN", "").strip() or os.environ.get("GOOGLE_OAUTH_ACCESS_TOKEN", "").strip()
+    if token:
+        return token
+    try:
+        return subprocess.check_output(
+            ["gcloud", "auth", "print-access-token"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return ""
 
 
 async def run_single(
@@ -69,15 +97,33 @@ async def run_single(
     num_agents: int | None,
     tick_unit_override: str | None,
     bench_dir: Path,
+    seed: int,
 ) -> dict:
     """Run one simulation and return a summary dict."""
     prov = PROVIDERS[provider_key]
-    api_key = os.environ.get(prov["env_key"], "")
-    if not api_key:
-        print(f"  [SKIP] {prov['label']} — {prov['env_key']} not set")
-        return {"skipped": True, "provider": prov["label"]}
+    if provider_key == "vertex":
+        project = os.environ.get("VERTEX_PROJECT_ID", "").strip() or os.environ.get("GCP_PROJECT_ID", "").strip()
+        location = os.environ.get("VERTEX_LOCATION", "").strip() or os.environ.get("GCP_LOCATION", "").strip() or "us-central1"
+        api_key = _resolve_vertex_access_token()
+        if not project:
+            print("  [SKIP] Vertex AI · Gemini 2.5 Flash — VERTEX_PROJECT_ID not set")
+            return {"skipped": True, "provider": prov["label"]}
+        if not api_key:
+            print("  [SKIP] Vertex AI · Gemini 2.5 Flash — no access token (VERTEX_ACCESS_TOKEN or gcloud auth)")
+            return {"skipped": True, "provider": prov["label"]}
+        prov = dict(prov)
+        prov["base_url"] = os.environ.get("VERTEX_OPENAI_BASE_URL", "").strip() or (
+            f"https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/endpoints/openapi"
+        )
+    else:
+        api_key = os.environ.get(prov["env_key"], "")
+        if not api_key:
+            print(f"  [SKIP] {prov['label']} — {prov['env_key']} not set")
+            return {"skipped": True, "provider": prov["label"]}
 
     from nanosim.scenario_loader import load_scenario
+    import random
+    random.seed(seed)
     scenario = load_scenario(scenario_name)
 
     run_dir = bench_dir / provider_key
@@ -230,7 +276,7 @@ def print_comparison(results: list[dict], bench_dir: Path) -> None:
 
     valid = [r for r in results if not r.get("skipped")]
     if len(valid) < 2:
-        print("\n  Not enough providers ran. Need both GROQ_API_KEY and OPENROUTER_API_KEY in .env")
+        print("\n  Not enough providers ran for side-by-side comparison. Run at least two providers.")
         return
 
     a, b = valid[0], valid[1]
@@ -356,12 +402,17 @@ async def main() -> None:
     bench_dir.mkdir(parents=True, exist_ok=True)
 
     print("╔" + "═" * 58 + "╗")
-    print("║" + "  NANOLIFE BENCHMARK".center(58) + "║")
+    print("║" + "  NANOSIM BENCHMARK".center(58) + "║")
     print("║" + f"  {args.scenario} · {args.ticks} ticks".center(58) + "║")
     print("╚" + "═" * 58 + "╝")
 
+    selected = [p.strip() for p in args.providers.split(",") if p.strip()]
+    invalid = [p for p in selected if p not in PROVIDERS]
+    if invalid:
+        raise SystemExit(f"Unknown providers: {', '.join(invalid)}. Valid: {', '.join(PROVIDERS)}")
+
     results = []
-    for provider_key in PROVIDERS:
+    for provider_key in selected:
         result = await run_single(
             provider_key=provider_key,
             scenario_name=args.scenario,
@@ -369,6 +420,7 @@ async def main() -> None:
             num_agents=args.agents,
             tick_unit_override=args.tick_unit,
             bench_dir=bench_dir,
+            seed=args.seed,
         )
         results.append(result)
 
