@@ -1,6 +1,6 @@
 # nanosim
 
-![nanosim](nanosim.png)
+![nanosim](nanolife.png)
 
 <p align="center">
   <img src="charts/chart_alignment.png" width="32%" />
@@ -24,7 +24,7 @@ nanosim is the smallest multi-agent LLM-based Artificial Life harness — a modu
 For fun, there are multiple scenarios: `nanothrones`, `nanoception`, `nanomatrix`, `nanorings`, `nanozombie`, `nanopoter`
 
 <p align="center">
-  <img src="nanosim-terminal.png" width='80%' />
+  <img src="nanolife-terminal.png" width='80%' />
   <br><em>Figure 2 — nanosim terminal</em>
 </p>
 
