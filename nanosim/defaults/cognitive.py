@@ -101,10 +101,11 @@ class LLMCognitive(CognitiveFunction):
         self.llm_calls += 1
         usage = resp.usage
         if usage:
-            self.total_tokens += usage.total_tokens
-            self.prompt_tokens += usage.prompt_tokens
-            self.completion_tokens += usage.completion_tokens
-            self._update_cost(usage.prompt_tokens, usage.completion_tokens)
+            prompt_t, completion_t, total_t = self._normalize_usage(usage)
+            self.total_tokens += total_t
+            self.prompt_tokens += prompt_t
+            self.completion_tokens += completion_t
+            self._update_cost(prompt_t, completion_t)
 
         raw = resp.choices[0].message.content or "{}"
         return self._parse_response(raw, agents, agent_name=agent.name)
@@ -138,12 +139,17 @@ class LLMCognitive(CognitiveFunction):
         self.llm_calls += 1
         usage = resp.usage
         if usage:
-            self.total_tokens += usage.total_tokens
-            self.prompt_tokens += usage.prompt_tokens
-            self.completion_tokens += usage.completion_tokens
-            self._update_cost(usage.prompt_tokens, usage.completion_tokens)
+            prompt_t, completion_t, total_t = self._normalize_usage(usage)
+            self.total_tokens += total_t
+            self.prompt_tokens += prompt_t
+            self.completion_tokens += completion_t
+            self._update_cost(prompt_t, completion_t)
 
-        return (resp.choices[0].message.content or generate_fallback()).strip()
+        msg = resp.choices[0].message if resp and resp.choices else None
+        content = getattr(msg, "content", None)
+        if content is None and isinstance(msg, dict):
+            content = msg.get("content")
+        return (content or generate_fallback()).strip()
 
     async def name_child(self, parent_a: Agent, parent_b: Agent) -> str:
         resp = await self._call_with_retry(
@@ -161,13 +167,31 @@ class LLMCognitive(CognitiveFunction):
         self.llm_calls += 1
         usage = resp.usage
         if usage:
-            self.total_tokens += usage.total_tokens
-            self.prompt_tokens += usage.prompt_tokens
-            self.completion_tokens += usage.completion_tokens
-            self._update_cost(usage.prompt_tokens, usage.completion_tokens)
-        parts = (resp.choices[0].message.content or "").strip().split()
+            prompt_t, completion_t, total_t = self._normalize_usage(usage)
+            self.total_tokens += total_t
+            self.prompt_tokens += prompt_t
+            self.completion_tokens += completion_t
+            self._update_cost(prompt_t, completion_t)
+        msg = resp.choices[0].message if resp and resp.choices else None
+        content = getattr(msg, "content", None)
+        if content is None and isinstance(msg, dict):
+            content = msg.get("content")
+        parts = (content or "").strip().split()
         name = parts[0] if parts else ""
         return name or f"{parent_a.name[:2]}{parent_b.name[-3:]}"
+
+    @staticmethod
+    def _normalize_usage(usage: Any) -> tuple[int, int, int]:
+        """Normalize token accounting across providers.
+
+        Some OpenAI-compatible backends (including Vertex in some responses)
+        may return None for one or more usage fields.
+        """
+        prompt_t = int(getattr(usage, "prompt_tokens", 0) or 0)
+        completion_t = int(getattr(usage, "completion_tokens", 0) or 0)
+        total_raw = getattr(usage, "total_tokens", None)
+        total_t = int(total_raw) if total_raw is not None else prompt_t + completion_t
+        return prompt_t, completion_t, total_t
 
     def _parse_response(self, raw: str, agents: list[Agent], agent_name: str = "?") -> dict[str, Any]:
         original = raw
