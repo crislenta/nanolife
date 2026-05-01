@@ -87,8 +87,9 @@ python -m scripts.simulate [OPTIONS]
   --no-report         Skip postmortem report generation
   --x-artifacts       Generate X-ready metric card, replay GIF, and thread draft
   --x-max-moments N   Max highlighted moments in X artifacts (default: 12)
-  --open-router       Use OpenRouter (Gemini 2.5 Flash) instead of Groq
-  --vertex            Use Vertex AI OpenAI-compatible endpoint
+  --vertex            Use Vertex AI OpenAI-compatible endpoint (default)
+  --open-router       Use OpenRouter (Gemini 2.5 Flash) instead of Vertex
+  --groq              Use Groq (GPT-OSS-120B) instead of Vertex
 ```
 
 Everything happens in the terminal (Figure 2). A fullscreen Rich dashboard shows the simulation live: world stats, scrolling event feed, agent roster, spotlight, and emergence index.
@@ -129,9 +130,9 @@ python -m scripts.simulate --scenario=nanothrones --ticks=30 --seed=7 --x-artifa
 
 | Provider   | Flag            | Default Model             | Auth / Key |
 | ---------- | --------------- | ------------------------- | ---------- |
-| Groq       | _(default)_     | `openai/gpt-oss-120b`     | `GROQ_API_KEY` |
+| Vertex AI  | _(default)_     | `google/gemini-2.5-flash` | `VERTEX_PROJECT_ID` + gcloud auth token (or `VERTEX_ACCESS_TOKEN`) |
 | OpenRouter | `--open-router` | `google/gemini-2.5-flash` | `OPENROUTER_API_KEY` |
-| Vertex AI  | `--vertex`      | `google/gemini-2.5-flash` | `VERTEX_PROJECT_ID` + gcloud auth token (or `VERTEX_ACCESS_TOKEN`) |
+| Groq       | `--groq`        | `openai/gpt-oss-120b`     | `GROQ_API_KEY` |
 
 Override the model with `--model` on either provider. Any OpenAI-compatible model string works.
 
