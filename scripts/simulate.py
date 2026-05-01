@@ -9,6 +9,7 @@ import argparse
 import asyncio
 import os
 import random
+import shutil
 import subprocess
 import time
 from datetime import datetime
@@ -52,18 +53,68 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--no-report", action="store_true", help="Skip postmortem report generation")
     p.add_argument("--x-artifacts", action="store_true", help="Generate X-ready card/GIF/thread artifacts after the run")
     p.add_argument("--x-max-moments", type=int, default=12, help="Max highlighted moments to include in X artifacts")
-    p.add_argument("--open-router", action="store_true", help="Use OpenRouter with Gemini instead of Groq")
-    p.add_argument("--vertex", action="store_true", help="Use Google Vertex AI OpenAI-compatible endpoint")
+    p.add_argument("--open-router", action="store_true", help="Use OpenRouter with Gemini instead of default provider")
+    p.add_argument("--groq", action="store_true", help="Force Groq provider (overrides default Vertex selection)")
+    p.add_argument("--vertex", action="store_true", help="Force Google Vertex AI provider")
     return p.parse_args()
+
+
+def _gcloud_bin() -> str | None:
+    """Return a usable gcloud path from PATH or local tool installs."""
+    env_bin = os.environ.get("GCLOUD_BIN", "").strip()
+    if env_bin:
+        return env_bin
+    path_bin = shutil.which("gcloud")
+    if path_bin:
+        return path_bin
+    candidates = [
+        str(Path(__file__).resolve().parent.parent / ".tools" / "google-cloud-sdk" / "bin" / "gcloud"),
+        str(Path.home() / "google-cloud-sdk" / "bin" / "gcloud"),
+    ]
+    for c in candidates:
+        if Path(c).exists():
+            return c
+    return None
+
+
+def _resolve_vertex_project() -> str:
+    project = os.environ.get("VERTEX_PROJECT_ID", "").strip() or os.environ.get("GCP_PROJECT_ID", "").strip()
+    if project:
+        return project
+    gcloud = _gcloud_bin()
+    if not gcloud:
+        return ""
+    try:
+        return subprocess.check_output(
+            [gcloud, "config", "get-value", "project"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return ""
 
 
 def _resolve_vertex_access_token() -> str:
     token = os.environ.get("VERTEX_ACCESS_TOKEN", "").strip() or os.environ.get("GOOGLE_OAUTH_ACCESS_TOKEN", "").strip()
     if token:
         return token
+    gcloud = _gcloud_bin()
+    if not gcloud:
+        return ""
+    # Prefer ADC token for service-to-service auth in headless agent sessions.
+    for cmd in (
+        [gcloud, "auth", "application-default", "print-access-token"],
+        [gcloud, "auth", "print-access-token"],
+    ):
+        try:
+            out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+            if out:
+                return out
+        except Exception:
+            pass
     try:
         return subprocess.check_output(
-            ["gcloud", "auth", "print-access-token"],
+            [gcloud, "auth", "print-access-token"],
             text=True,
             stderr=subprocess.DEVNULL,
         ).strip()
@@ -73,34 +124,41 @@ def _resolve_vertex_access_token() -> str:
 
 def _resolve_provider(args: argparse.Namespace) -> dict[str, str]:
     """Return api_key, base_url, model, and report_model based on CLI flags."""
-    if args.open_router and args.vertex:
-        print("[FATAL] --open-router and --vertex are mutually exclusive.", file=sys.stderr)
+    flags = [args.open_router, args.vertex, args.groq]
+    if sum(1 for f in flags if f) > 1:
+        print("[FATAL] --open-router, --vertex, and --groq are mutually exclusive.", file=sys.stderr)
         raise RuntimeError("choose one provider")
 
-    if args.vertex:
-        project = os.environ.get("VERTEX_PROJECT_ID", "").strip() or os.environ.get("GCP_PROJECT_ID", "").strip()
+    # Default behavior: prefer Vertex when auth/project are available.
+    prefer_vertex = (not args.open_router and not args.groq) or args.vertex
+    if prefer_vertex:
+        project = _resolve_vertex_project()
         location = os.environ.get("VERTEX_LOCATION", "").strip() or os.environ.get("GCP_LOCATION", "").strip() or "us-central1"
         if not project:
-            print("[FATAL] Set VERTEX_PROJECT_ID (or GCP_PROJECT_ID) for --vertex.", file=sys.stderr)
-            raise RuntimeError("VERTEX_PROJECT_ID not set")
-        api_key = _resolve_vertex_access_token()
-        if not api_key:
-            print(
-                "[FATAL] No Vertex access token. Set VERTEX_ACCESS_TOKEN or authenticate gcloud (`gcloud auth application-default login`).",
-                file=sys.stderr,
-            )
-            raise RuntimeError("Vertex access token not available")
-        default_model = "google/gemini-2.5-flash"
-        base_url = os.environ.get("VERTEX_OPENAI_BASE_URL", "").strip() or (
-            f"https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/endpoints/openapi"
-        )
-        return {
-            "api_key": api_key,
-            "base_url": base_url,
-            "model": args.model or default_model,
-            "report_model": args.report_model or default_model,
-            "provider_label": "Vertex AI",
-        }
+            if args.vertex:
+                print("[FATAL] Set VERTEX_PROJECT_ID (or GCP_PROJECT_ID) for --vertex.", file=sys.stderr)
+                raise RuntimeError("VERTEX_PROJECT_ID not set")
+        else:
+            api_key = _resolve_vertex_access_token()
+            if not api_key:
+                if args.vertex:
+                    print(
+                        "[FATAL] No Vertex access token. Set VERTEX_ACCESS_TOKEN or authenticate gcloud (`gcloud auth application-default login`).",
+                        file=sys.stderr,
+                    )
+                    raise RuntimeError("Vertex access token not available")
+            else:
+                default_model = "google/gemini-2.5-flash"
+                base_url = os.environ.get("VERTEX_OPENAI_BASE_URL", "").strip() or (
+                    f"https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/endpoints/openapi"
+                )
+                return {
+                    "api_key": api_key,
+                    "base_url": base_url,
+                    "model": args.model or default_model,
+                    "report_model": args.report_model or default_model,
+                    "provider_label": "Vertex AI",
+                }
 
     if args.open_router:
         api_key = os.environ.get("OPENROUTER_API_KEY", "")
@@ -115,19 +173,22 @@ def _resolve_provider(args: argparse.Namespace) -> dict[str, str]:
             "report_model": args.report_model or default_model,
             "provider_label": "OpenRouter",
         }
-    else:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            print("[FATAL] GROQ_API_KEY not set. Add it to .env or export it.", file=sys.stderr)
-            raise RuntimeError("GROQ_API_KEY not set")
-        default_model = "openai/gpt-oss-120b"
-        return {
-            "api_key": api_key,
-            "base_url": "https://api.groq.com/openai/v1",
-            "model": args.model or default_model,
-            "report_model": args.report_model or default_model,
-            "provider_label": "Groq",
-        }
+
+    if not args.groq and not args.open_router and not args.vertex:
+        print("[provider] Vertex not available; falling back to Groq.", file=sys.stderr)
+
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key:
+        print("[FATAL] GROQ_API_KEY not set. Add it to .env or export it.", file=sys.stderr)
+        raise RuntimeError("GROQ_API_KEY not set")
+    default_model = "openai/gpt-oss-120b"
+    return {
+        "api_key": api_key,
+        "base_url": "https://api.groq.com/openai/v1",
+        "model": args.model or default_model,
+        "report_model": args.report_model or default_model,
+        "provider_label": "Groq",
+    }
 
 
 async def main() -> None:
