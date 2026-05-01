@@ -96,10 +96,11 @@ Everything happens in the terminal (Figure 2). A fullscreen Rich dashboard shows
 
 When the simulation ends — whether by tick limit, extinction, or Ctrl+C — a **postmortem** runs automatically:
 
-1. **Emergence analysis** (instant, no LLM) — detects 11 phenomena (alliances, leadership, factions, betrayals, ostracism, generational transmission, cultural drift, wealth concentration, economic dependency, resource warfare, free riding)
-2. **Academic HTML report** (LLM) — a formal evaluation paper with agent case studies, economic analysis, and critical timeline — auto-opens in browser
-3. **Charts** (matplotlib) — survival, alignment, reputation, drama curves
-4. **Social graph viewer** — interactive HTML visualization of the social network
+1. **Executive benchmark summary** (instant, deterministic, no LLM) — prints first in terminal and scores the run with a single verdict (`RELEVANT`, `PROMISING`, `SLOP`) plus prioritized change actions.
+2. **Emergence analysis** (instant, no LLM) — detects 11 phenomena (alliances, leadership, factions, betrayals, ostracism, generational transmission, cultural drift, wealth concentration, economic dependency, resource warfare, free riding)
+3. **Academic HTML report** (LLM) — a formal evaluation paper with agent case studies, economic analysis, and critical timeline (now prefixed with the same executive summary) — auto-opens in browser
+4. **Charts** (matplotlib) — survival, alignment, reputation, drama curves
+5. **Social graph viewer** — interactive HTML visualization of the social network
 
 Examples:
 

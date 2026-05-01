@@ -315,6 +315,175 @@ def analyze(run_dir: Path) -> dict:
 
 
 # ═══════════════════════════════════════════════════════════════
+# EXECUTIVE BENCHMARK SUMMARY — deterministic run quality score
+# ═══════════════════════════════════════════════════════════════
+
+def _clamp01(x: float) -> float:
+    return max(0.0, min(1.0, x))
+
+
+def benchmark_run_quality(events: list[dict], data: dict, emergence: dict) -> dict:
+    """Score one simulation run and return an executive summary payload.
+
+    Benchmark v1 is deterministic and intentionally lightweight:
+    - Survival resilience (25)
+    - Emergence breadth (30)
+    - Behavioral diversity (20)
+    - Social/economic interaction density (15)
+    - Stability / fallback hygiene (10)
+    """
+    actions = [e for e in events if e.get("type") == "action"]
+    thoughts = [e for e in events if e.get("type") == "thought"]
+    parse_errors = [e for e in events if e.get("type") == "parse_error"]
+    friendships = [e for e in events if e.get("type") == "friendship"]
+    reputations = [e for e in events if e.get("type") == "reputation"]
+    transfers = [e for e in events if e.get("type") in ("transfer", "trade", "trade_offer")]
+    births = [e for e in events if e.get("type") == "birth"]
+    deaths = [e for e in events if e.get("type") == "death"]
+
+    # Survival of the starting cohort.
+    starters = {e.get("agent") for e in births if e.get("tick", 0) == 0 and e.get("agent")}
+    if not starters:
+        starters = {
+            e.get("agent")
+            for e in events
+            if e.get("tick", 0) == 0 and e.get("agent")
+        }
+        starters.discard(None)
+    dead_ids = {e.get("agent") for e in deaths if e.get("agent")}
+    starters_count = len(starters)
+    survivors = len(starters - dead_ids) if starters_count else 0
+    survival_ratio = (survivors / starters_count) if starters_count else 0.0
+
+    # Breadth of emergence phenomena detected.
+    emergence_max = emergence.get("max_emergence_index", 11) or 11
+    emergence_ratio = (emergence.get("emergence_index", 0) / emergence_max) if emergence_max else 0.0
+
+    # Behavioral diversity from normalized action prefixes.
+    norm_actions = [str(e.get("content", "")).strip().lower()[:60] for e in actions if str(e.get("content", "")).strip()]
+    distinct_actions = len(set(norm_actions))
+    action_diversity = (distinct_actions / len(norm_actions)) if norm_actions else 0.0
+
+    # Interaction density: social/economic events per action.
+    interaction_events = len(friendships) + len(reputations) + len(transfers)
+    interaction_density = interaction_events / max(len(actions), 1)
+
+    # Stability penalties: parse errors and fallback "pause" monoculture.
+    pause_actions = sum(
+        1
+        for e in actions
+        if "pause and gather my thoughts" in str(e.get("content", "")).lower()
+    )
+    pause_rate = pause_actions / max(len(actions), 1)
+    parse_error_rate = len(parse_errors) / max(len(actions), 1)
+
+    # Component scoring thresholds tuned to be interpretable, not absolute.
+    survival_score = 25.0 * _clamp01(survival_ratio / 0.70)          # full score once >= 70% starter survival
+    emergence_score = 30.0 * _clamp01(emergence_ratio / 0.50)        # full score once >= 5/11 phenomena
+    diversity_score = 20.0 * _clamp01(action_diversity / 0.25)       # full score once >= 25% unique action prefixes
+    interaction_score = 15.0 * _clamp01(interaction_density / 0.35)  # full score once >= 0.35 interaction/action
+    stability_score = max(0.0, 10.0 - (20.0 * pause_rate) - (30.0 * parse_error_rate))
+
+    total_score = round(survival_score + emergence_score + diversity_score + interaction_score + stability_score, 1)
+    if total_score >= 70:
+        verdict = "RELEVANT"
+    elif total_score >= 50:
+        verdict = "PROMISING"
+    else:
+        verdict = "SLOP"
+
+    recommendations: list[str] = []
+    if survival_score < 12.5:
+        recommendations.append("Improve survival pressure balance: reduce harshness/base_drain or raise base_gain.")
+    if emergence_score < 15:
+        recommendations.append("Increase emergence signal: run longer horizons and/or more agents; add scenario tension.")
+    if diversity_score < 10:
+        recommendations.append("Increase action diversity: tighten prompts/parser to avoid repetitive action loops.")
+    if interaction_score < 7.5:
+        recommendations.append("Strengthen social economy: increase incentives for praise, alliances, and transfers/trades.")
+    if stability_score < 6:
+        recommendations.append("Reduce fallback noise: address parse errors / auth failures and monitor pause-action rate.")
+    if not recommendations:
+        recommendations.append("Maintain current settings and expand benchmark sweeps to verify statistical stability.")
+
+    return {
+        "benchmark_version": "nanosim-benchmark-v1",
+        "verdict": verdict,
+        "score": total_score,
+        "max_score": 100.0,
+        "components": {
+            "survival": round(survival_score, 1),
+            "emergence": round(emergence_score, 1),
+            "diversity": round(diversity_score, 1),
+            "interaction": round(interaction_score, 1),
+            "stability": round(stability_score, 1),
+        },
+        "signals": {
+            "starting_agents": starters_count,
+            "survivors": survivors,
+            "survival_ratio": round(survival_ratio, 3),
+            "emergence_index": emergence.get("emergence_index", 0),
+            "emergence_max": emergence_max,
+            "action_diversity": round(action_diversity, 3),
+            "interaction_density": round(interaction_density, 3),
+            "pause_rate": round(pause_rate, 3),
+            "parse_error_rate": round(parse_error_rate, 3),
+            "actions": len(actions),
+            "thoughts": len(thoughts),
+            "births": len([e for e in births if e.get("tick", 0) > 0]),
+            "deaths": len(deaths),
+            "total_ticks": data.get("total_ticks", 0),
+        },
+        "recommendations": recommendations[:5],
+    }
+
+
+def _exec_summary_text(summary: dict) -> str:
+    s = summary["signals"]
+    c = summary["components"]
+    lines = [
+        "  EXECUTIVE SUMMARY",
+        "  ─────────────────",
+        f"  Verdict: {summary['verdict']}  ({summary['score']:.1f}/{summary['max_score']:.0f})",
+        f"  Signals: survival {s['survival_ratio']:.0%} ({s['survivors']}/{s['starting_agents']} starters), "
+        f"emergence {s['emergence_index']}/{s['emergence_max']}, diversity {s['action_diversity']:.2f}, "
+        f"interaction {s['interaction_density']:.2f}",
+        f"  Component scores: survival {c['survival']:.1f}, emergence {c['emergence']:.1f}, "
+        f"diversity {c['diversity']:.1f}, interaction {c['interaction']:.1f}, stability {c['stability']:.1f}",
+        "  Priority changes:",
+    ]
+    for i, rec in enumerate(summary["recommendations"], start=1):
+        lines.append(f"    {i}. {rec}")
+    return "\n".join(lines)
+
+
+def _exec_summary_html(summary: dict) -> str:
+    s = summary["signals"]
+    c = summary["components"]
+    items = "".join(f"<li>{r}</li>" for r in summary["recommendations"])
+    return f"""
+<section class="exec-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Verdict:</strong> {summary["verdict"]} ({summary["score"]:.1f}/{summary["max_score"]:.0f}) · <span class="exec-version">{summary["benchmark_version"]}</span></p>
+  <p><strong>Signals:</strong> Survival {s["survival_ratio"]:.0%} ({s["survivors"]}/{s["starting_agents"]} starters), Emergence {s["emergence_index"]}/{s["emergence_max"]}, Action diversity {s["action_diversity"]:.2f}, Interaction density {s["interaction_density"]:.2f}</p>
+  <table>
+    <caption>Benchmark component scores</caption>
+    <thead><tr><th>Component</th><th>Score</th></tr></thead>
+    <tbody>
+      <tr><td>Survival</td><td>{c["survival"]:.1f}</td></tr>
+      <tr><td>Emergence</td><td>{c["emergence"]:.1f}</td></tr>
+      <tr><td>Diversity</td><td>{c["diversity"]:.1f}</td></tr>
+      <tr><td>Interaction</td><td>{c["interaction"]:.1f}</td></tr>
+      <tr><td>Stability</td><td>{c["stability"]:.1f}</td></tr>
+    </tbody>
+  </table>
+  <h3>Priority changes</h3>
+  <ol>{items}</ol>
+</section>
+""".strip()
+
+
+# ═══════════════════════════════════════════════════════════════
 # RICH DATA EXTRACTION — from logs
 # ═══════════════════════════════════════════════════════════════
 
@@ -709,6 +878,9 @@ blockquote {
 .agent-entry.alive { border-left-color: #27ae60; }
 .agent-entry h4 { font-size: 0.95em; margin-bottom: 0.3em; }
 .agent-entry .meta { font-size: 0.85em; color: #555; }
+.exec-summary { border: 1px solid #ccd8e5; background: #f8fbff; padding: 1em 1.2em; margin: 0 0 1.2em 0; }
+.exec-summary h2 { margin-top: 0; border-bottom: none; }
+.exec-summary .exec-version { color: #577590; font-size: 0.86em; }
 .footnote { font-size: 0.82em; color: #666; border-top: 1px solid #ddd; margin-top: 3em; padding-top: 0.8em; }
 .annex { margin-top: 3em; border-top: 2px solid #333; padding-top: 1.5em; }
 .annex h2 { font-size: 1.3em; margin-bottom: 0.5em; }
@@ -882,7 +1054,7 @@ def _build_agent_annex(run_dir: Path, data: dict) -> str:
 
 
 async def _generate_report(
-    run_dir: Path, data: dict, emergence: dict, model: str,
+    run_dir: Path, data: dict, emergence: dict, executive_summary: dict, model: str,
     api_key: str | None = None, base_url: str = "https://api.groq.com/openai/v1",
 ) -> Path | None:
     rich_text = _format_for_llm(data, emergence)
@@ -934,6 +1106,7 @@ async def _generate_report(
 </head>
 <body>
 <main>
+{_exec_summary_html(executive_summary)}
 {body}
 {annex}
 </main>
@@ -974,24 +1147,29 @@ async def run_postmortem(
     print("  Analyzing emergence...")
     emergence = analyze(run_dir)
 
-    print(f"  Events: {emergence['total_events']}")
-    for t, c in sorted(emergence["event_types"].items(), key=lambda x: -x[1]):
-        print(f"    {t:15s} {c:5d}")
-    print(f"  Emergence Index: {emergence['emergence_index']}/{emergence.get('max_emergence_index', 11)}")
-    print(f"  Detected: {', '.join(emergence['phenomena_detected']) or 'none'}")
-
-    if emergence["details"]:
-        for d in emergence["details"][:10]:
-            phenom = d["phenomenon"]
-            extra = {k: v for k, v in d.items() if k != "phenomenon"}
-            print(f"    [{phenom}] {extra}")
-
     print("\n  Extracting simulation data...")
     data = _extract_rich_data(run_dir)
     if not data:
         print("  [postmortem] No data extracted — skipping report.")
         return
 
+    events = _load_events(run_dir)
+    executive_summary = benchmark_run_quality(events, data, emergence)
+
+    # Must come first: concise benchmark verdict + required changes.
+    print("\n" + _exec_summary_text(executive_summary))
+
+    print("\n  DETAIL SNAPSHOT")
+    print(f"  Events: {emergence['total_events']}")
+    for t, c in sorted(emergence["event_types"].items(), key=lambda x: -x[1]):
+        print(f"    {t:15s} {c:5d}")
+    print(f"  Emergence Index: {emergence['emergence_index']}/{emergence.get('max_emergence_index', 11)}")
+    print(f"  Detected: {', '.join(emergence['phenomena_detected']) or 'none'}")
+    if emergence["details"]:
+        for d in emergence["details"][:10]:
+            phenom = d["phenomenon"]
+            extra = {k: v for k, v in d.items() if k != "phenomenon"}
+            print(f"    [{phenom}] {extra}")
     print(f"  {data['total_ticks']} ticks | {data['total_births']} births | {data['total_deaths']} deaths")
     print(f"  {len(data.get('alliances', []))} alliances | {len(data.get('rivalries', []))} rivalries | {data['total_rumors']} rumors")
 
@@ -1002,17 +1180,28 @@ async def run_postmortem(
         if annex:
             annex_html = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><title>nanosim — Agent Logs</title>
-<style>{_PAPER_CSS}</style></head><body><main>{annex}</main></body></html>"""
+<style>{_PAPER_CSS}</style></head><body><main>{_exec_summary_html(executive_summary)}{annex}</main></body></html>"""
             annex_path = run_dir / "agent_logs.html"
             annex_path.write_text(annex_html)
             print(f"  Agent logs saved: {annex_path}")
         analysis_path = run_dir / "analysis.json"
         analysis_path.write_text(json.dumps(emergence, indent=2))
         print(f"  Analysis saved: {analysis_path}")
+        exec_path = run_dir / "executive_summary.json"
+        exec_path.write_text(json.dumps(executive_summary, indent=2))
+        print(f"  Executive summary saved: {exec_path}")
         return
 
     print(f"\n  Generating academic evaluation via {report_model}...")
-    report_path = await _generate_report(run_dir, data, emergence, report_model, api_key=resolved_key, base_url=base_url)
+    report_path = await _generate_report(
+        run_dir,
+        data,
+        emergence,
+        executive_summary,
+        report_model,
+        api_key=resolved_key,
+        base_url=base_url,
+    )
 
     if report_path:
         print(f"  Report saved: {report_path}")
@@ -1029,6 +1218,9 @@ async def run_postmortem(
     analysis_path = run_dir / "analysis.json"
     analysis_path.write_text(json.dumps(emergence, indent=2))
     print(f"  Analysis saved: {analysis_path}")
+    exec_path = run_dir / "executive_summary.json"
+    exec_path.write_text(json.dumps(executive_summary, indent=2))
+    print(f"  Executive summary saved: {exec_path}")
 
     print("\n  Generating charts...")
     try:
